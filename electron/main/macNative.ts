@@ -27,6 +27,7 @@ interface ObjC {
   msgBoolId: (self: Id, sel: Id, arg: Id) => boolean
   msgVoidId: (self: Id, sel: Id, arg: Id) => void
   msgCStr: (self: Id, sel: Id) => string | null
+  msgGetBytes: (self: Id, sel: Id, out: Buffer, len: number) => void
   poolPush: () => Id
   poolPop: (pool: Id) => void
 }
@@ -59,6 +60,7 @@ if (process.platform === 'darwin') {
       msgBoolId: rt.func('bool objc_msgSend(void *self, void *op, void *arg)'),
       msgVoidId: rt.func('void objc_msgSend(void *self, void *op, void *arg)'),
       msgCStr: rt.func('const char *objc_msgSend(void *self, void *op)'),
+      msgGetBytes: rt.func('void objc_msgSend(void *self, void *op, _Out_ uint8_t *buf, uint64_t len)'),
       poolPush: rt.func('void *objc_autoreleasePoolPush()'),
       poolPop: rt.func('void objc_autoreleasePoolPop(void *pool)')
     }
@@ -111,6 +113,46 @@ export function macPasteboardChangeCount(): number {
   return withPool(0, (o) => Number(o.msgLong(generalPasteboard(o), o.sel('changeCount'))))
 }
 
+/**
+ * The pasteboard's type identifiers (UTIs such as public.utf8-plain-text,
+ * public.html, org.nspasteboard.ConcealedType), in the order the copying app
+ * declared them. Empty when the pasteboard is empty or unreadable.
+ */
+export function macPasteboardTypes(): string[] {
+  return withPool<string[]>([], (o) => {
+    const types = o.msgId(generalPasteboard(o), o.sel('types'))
+    if (!types) return []
+    const count = Number(o.msgLong(types, o.sel('count')))
+    const out: string[] = []
+    for (let i = 0; i < count; i++) {
+      const t = o.msgIdIdx(types, o.sel('objectAtIndex:'), i)
+      const name = t ? o.msgCStr(t, o.sel('UTF8String')) : null
+      if (name) out.push(name)
+    }
+    return out
+  })
+}
+
+/** The string stored under `type` (default: plain text), or null when absent. */
+export function macPasteboardString(type = 'public.utf8-plain-text'): string | null {
+  return withPool<string | null>(null, (o) => {
+    const str = o.msgIdStr(generalPasteboard(o), o.sel('stringForType:'), nsString(o, type))
+    return str ? o.msgCStr(str, o.sel('UTF8String')) : null
+  })
+}
+
+/** The raw bytes stored under `type`, or null when absent. */
+export function macPasteboardData(type: string): Buffer | null {
+  return withPool<Buffer | null>(null, (o) => {
+    const data = o.msgIdStr(generalPasteboard(o), o.sel('dataForType:'), nsString(o, type))
+    if (!data) return null
+    const len = Number(o.msgLong(data, o.sel('length')))
+    const out = Buffer.alloc(len)
+    if (len > 0) o.msgGetBytes(data, o.sel('getBytes:length:'), out, len)
+    return out
+  })
+}
+
 /** Absolute paths of the file URLs on the general pasteboard (Finder copy), or null. */
 export function macReadFileUrls(): string[] | null {
   return withPool<string[] | null>(null, (o) => {
@@ -153,6 +195,23 @@ export function macWriteFileUrls(paths: string[]): boolean {
     }
     o.msgLong(pb, o.sel('clearContents'))
     return o.msgBoolId(pb, o.sel('writeObjects:'), arr)
+  })
+}
+
+/** Bit mask of the mouse buttons held right now (bit 0: left, bit 1: right), 0 when none. */
+export function macPressedMouseButtons(): number {
+  return withPool(0, (o) => Number(o.msgLong(o.getClass('NSEvent'), o.sel('pressedMouseButtons'))))
+}
+
+/**
+ * changeCount of the system drag pasteboard (NSPasteboardNameDrag). Every
+ * drag-and-drop session, from any app, writes its payload there when it
+ * starts, so a change while a button is held means a drag has begun.
+ */
+export function macDragPasteboardChangeCount(): number {
+  return withPool(0, (o) => {
+    const pb = o.msgIdStr(o.getClass('NSPasteboard'), o.sel('pasteboardWithName:'), nsString(o, 'Apple CFPasteboard drag'))
+    return pb ? Number(o.msgLong(pb, o.sel('changeCount'))) : 0
   })
 }
 

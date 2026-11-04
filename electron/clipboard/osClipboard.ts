@@ -18,6 +18,10 @@
  */
 import { clipboard, ClipboardItem, nativeImage, type NativeImage } from 'electron'
 import koffi from 'koffi'
+import { macPasteboardData, macPasteboardString, macPasteboardTypes } from '../main/macNative'
+
+// macOS: the same synchronous reads come from NSPasteboard (main/macNative).
+const IS_MAC = process.platform === 'darwin'
 
 const CF_BITMAP = 2
 const CF_DIB = 8
@@ -107,12 +111,14 @@ function readFormat(format: number): Buffer | null {
 
 /** The raw bytes of a named clipboard format (empty when absent), as `readBuffer` returned them. */
 export function readBuffer(format: string): Buffer {
+  if (IS_MAC) return macPasteboardData(format) ?? Buffer.alloc(0)
   if (!win32) return Buffer.alloc(0)
   return readFormat(formatId(win32, format)) ?? Buffer.alloc(0)
 }
 
 /** The clipboard's plain text (CF_UNICODETEXT, cut at its terminator), or ''. */
 export function readText(): string {
+  if (IS_MAC) return macPasteboardString() ?? ''
   const buf = readFormat(CF_UNICODETEXT)
   if (!buf) return ''
   const text = buf.toString('utf16le', 0, buf.length - (buf.length % 2))
@@ -127,6 +133,7 @@ export function readText(): string {
  * Asks Windows per format, without opening the clipboard.
  */
 export function availableFormats(): string[] {
+  if (IS_MAC) return macAvailableFormats()
   const api = win32
   if (!api) return []
   const has = (format: number) => {
@@ -143,6 +150,23 @@ export function availableFormats(): string[] {
   if (has(formatId(api, 'PNG')) || has(CF_DIB) || has(CF_BITMAP)) formats.push('image/png')
   if (has(CF_HDROP)) formats.push('text/uri-list')
   return formats
+}
+
+/**
+ * macOS: the MIME names Chromium reported, followed by the raw pasteboard
+ * types. The raw ones let the privacy check see password-manager markers
+ * (org.nspasteboard.ConcealedType, com.agilebits.onepassword ...).
+ */
+function macAvailableFormats(): string[] {
+  const types = macPasteboardTypes()
+  const has = (...uti: string[]) => uti.some((u) => types.includes(u))
+  const formats: string[] = []
+  if (has('public.utf8-plain-text', 'NSStringPboardType')) formats.push('text/plain')
+  if (has('public.html', 'Apple HTML pasteboard type')) formats.push('text/html')
+  if (has('public.rtf', 'NeXT Rich Text Format v1.0 pasteboard type')) formats.push('text/rtf')
+  if (has('public.png', 'public.tiff', 'NeXT TIFF v4.0 pasteboard type')) formats.push('image/png')
+  if (has('public.file-url', 'NSFilenamesPboardType')) formats.push('text/uri-list')
+  return [...formats, ...types]
 }
 
 async function clipboardEntry(type: string): Promise<Blob | null> {
