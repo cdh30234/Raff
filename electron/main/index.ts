@@ -96,6 +96,9 @@ app.on('before-quit', () => {
 })
 
 app.whenReady().then(() => {
+  // macOS: menu-bar utility — no Dock icon, no app switcher entry.
+  if (process.platform === 'darwin') app.dock?.hide()
+
   // GitHub NSIS needs an explicit AUMID. Store packages already have one from
   // the AppX identity; overriding it breaks toasts and taskbar grouping.
   if (!isStoreBuild()) {

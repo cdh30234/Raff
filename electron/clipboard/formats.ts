@@ -14,6 +14,9 @@ import { existsSync } from 'node:fs'
 import koffi from 'koffi'
 import type { ClipboardImageSource, ItemData } from '../../shared/types'
 import { isLinkText } from '../../shared/linkText'
+import { macPasteboardChangeCount, macReadFileUrls } from '../main/macNative'
+
+const IS_MAC = process.platform === 'darwin'
 
 let getSeqNum: (() => number) | null = null
 
@@ -49,6 +52,7 @@ if (process.platform === 'win32') {
 }
 
 export function getClipboardSequenceNumber(): number {
+  if (IS_MAC) return macPasteboardChangeCount()
   if (getSeqNum) {
     try {
       return getSeqNum()
@@ -118,6 +122,10 @@ async function readFileDropListNative(): Promise<string[] | null> {
  * unavailable or PowerShell times out.
  */
 async function readFileListAsync(): Promise<string[] | null> {
+  if (IS_MAC) {
+    const paths = filterValidPaths(macReadFileUrls() ?? [])
+    return paths.length ? paths : null
+  }
   try {
     // First, confirm there is actually a file list on the clipboard before
     // reading it. FileNameW being present is sufficient signal.
@@ -167,6 +175,7 @@ async function readFileListAsync(): Promise<string[] | null> {
 
 /** Fast, non-blocking check of FileNameW contents for clipboard signatures. */
 function readFileListFast(): string[] | null {
+  if (IS_MAC) return macReadFileUrls()
   try {
     const buf = clipboard.readBuffer(CF_FILE_LIST)
     if (!buf || buf.length < 4) return null
@@ -186,6 +195,7 @@ function readFileListFast(): string[] | null {
  * retrigger Explorer's delayed-render pipeline.
  */
 export function clipboardHasFileNameW(): boolean {
+  if (IS_MAC) return macReadFileUrls() !== null
   try {
     const buf = clipboard.readBuffer(CF_FILE_LIST)
     return !!(buf && buf.length >= 4)
@@ -207,6 +217,10 @@ export function clipboardHasFileNameW(): boolean {
  * the last capture and ignores that flush.
  */
 export function clipboardFilesContentKey(): string | null {
+  if (IS_MAC) {
+    const paths = macReadFileUrls()
+    return paths ? `files|${paths.join('\n')}` : null
+  }
   try {
     const buf = clipboard.readBuffer(CF_FILE_LIST)
     if (!buf || buf.length < 4) return null

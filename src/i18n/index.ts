@@ -105,7 +105,15 @@ export function t(path: string, params?: Record<string, string | number>): strin
     }
   }
 
-  return val
+  return IS_MAC ? macKeys(val) : val
+}
+
+/** True inside the macOS build: key names in strings become ⌘ / ⌥. */
+export const IS_MAC = typeof navigator !== 'undefined' && /Mac/i.test(navigator.platform || navigator.userAgent || '')
+
+/** "Ctrl+V" -> "⌘+V", "Alt + C" -> "⌥ + C" (only before a "+", so words like "Alt" stay). */
+export function macKeys(text: string): string {
+  return text.replace(/\bCtrl(?=\s*\+)/g, '⌘').replace(/\bAlt(?=\s*\+)/g, '⌥')
 }
 
 const languageNames = new Map<string, Intl.DisplayNames | null>()

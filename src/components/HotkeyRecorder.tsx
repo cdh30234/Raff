@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { playToggleSound, playButtonClickSound } from '../lib/soundEffects'
 import { RotateCcwIcon, CloseIcon } from './icons'
 import { edge } from '../lib/edge'
-import { useTranslation } from '../i18n'
+import { useTranslation, IS_MAC } from '../i18n'
 
 interface HotkeyRecorderProps {
   hotkey: string
@@ -11,11 +11,17 @@ interface HotkeyRecorderProps {
 
 /** Formats an Electron accelerator string (e.g. "Alt+Shift+C") into individual display keys. */
 function parseKeyBadges(accelerator: string): string[] {
-  if (!accelerator) return ['Alt', 'C']
+  if (!accelerator) return IS_MAC ? ['⌥', 'C'] : ['Alt', 'C']
   return accelerator
     .split('+')
     .map((k) => {
       const trimmed = k.trim()
+      if (IS_MAC) {
+        if (trimmed === 'Alt' || trimmed === 'Option') return '⌥'
+        if (trimmed === 'Shift') return '⇧'
+        if (trimmed === 'Ctrl' || trimmed === 'Control') return '⌃'
+        if (trimmed === 'CommandOrControl' || trimmed === 'Meta' || trimmed === 'Super' || trimmed === 'Command') return '⌘'
+      }
       if (trimmed === 'CommandOrControl' || trimmed === 'Ctrl') return 'Ctrl'
       if (trimmed === 'Meta' || trimmed === 'Super' || trimmed === 'Command') return 'Win'
       return trimmed.length === 1 ? trimmed.toUpperCase() : trimmed

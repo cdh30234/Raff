@@ -11,6 +11,7 @@ import { readFile } from 'node:fs/promises'
 import { basename, join } from 'node:path'
 import { execFile } from 'node:child_process'
 import { psHost, getSystemPowerShellPath, getWritableCwd } from './powershell'
+import { macCanSendKeys, macSendCmdV, macWriteFileUrls } from './macNative'
 import { filterValidPaths, isExistingFilePath } from './pathValidation'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
 import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher } from './state'
@@ -65,6 +66,17 @@ function toast(message: string, tone: 'info' | 'error' = 'info', params?: Record
 
 /** Simulate pressing Ctrl+V via PowerShell after returning focus to the previous active window. */
 function simulatePaste(): void {
+  if (process.platform === 'darwin') {
+    // Posting Cmd+V needs Accessibility permission; ask once, then the item
+    // simply stays on the clipboard for a manual Cmd+V.
+    if (!macCanSendKeys(false)) {
+      macCanSendKeys(true)
+      toast('toast.pasteFallback', 'info')
+      return
+    }
+    if (!macSendCmdV()) toast('toast.pasteFallback', 'info')
+    return
+  }
   if (process.platform === 'win32') {
     // Run via the persistent powershell host for near-zero latency (no process spawn overhead)
     psHost.run("Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait('^v')", 2000)
@@ -100,6 +112,7 @@ function simulatePaste(): void {
 async function writeFileListToClipboard(rawPaths: string[]): Promise<boolean> {
   const validPaths = toUnpackagedFilePaths(filterValidPaths(rawPaths))
   if (validPaths.length === 0) return false
+  if (process.platform === 'darwin' && macWriteFileUrls(validPaths)) return true
   if (process.platform === 'win32') {
     try {
       const addLines = validPaths

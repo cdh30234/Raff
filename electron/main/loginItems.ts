@@ -229,6 +229,14 @@ function collectGithubLoginNames(exePath: string): Set<string> {
 }
 
 export function readGithubLaunchAtLogin(): LaunchAtLoginResult {
+  if (process.platform === 'darwin') {
+    try {
+      const st = app.getLoginItemSettings()
+      return { enabled: !!st.openAtLogin, blockedByUser: st.status === 'requires-approval', ok: true }
+    } catch {
+      return { enabled: false, blockedByUser: false, ok: false }
+    }
+  }
   const exePath = app.getPath('exe')
 
   // Windows NSIS / portable builds: Read registry directly as authoritative source.
@@ -280,6 +288,14 @@ export function readGithubLaunchAtLogin(): LaunchAtLoginResult {
 }
 
 export function applyGithubLaunchAtLogin(wantLaunch: boolean): LaunchAtLoginResult {
+  if (process.platform === 'darwin') {
+    try {
+      app.setLoginItemSettings({ openAtLogin: wantLaunch, args: ['--hidden'] })
+    } catch (err) {
+      console.error('[LoginItems] macOS setLoginItemSettings failed:', err)
+    }
+    return readGithubLaunchAtLogin()
+  }
   const exePath = app.getPath('exe')
   const names = collectGithubLoginNames(exePath)
 

@@ -1,5 +1,8 @@
 import { app, net } from 'electron'
-import { isStoreBuild } from './config'
+import { isStoreBuild as isStoreBuildRaw } from './config'
+
+/** Store builds and the unofficial macOS port have no update feed. */
+const isStoreBuild = (): boolean => isStoreBuildRaw() || process.platform === 'darwin'
 import { pushState } from './state'
 import { getSettings } from '../store/settings'
 import { resolveUpdateMode } from '../../shared/types'

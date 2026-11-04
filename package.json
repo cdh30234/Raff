@@ -20,7 +20,8 @@
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "test": "vitest run",
-    "postinstall": "install-electron"
+    "postinstall": "install-electron",
+    "build:mac": "npm run build && electron-builder --mac dmg zip --arm64 -c.extraMetadata.buildTarget=github"
   },
   "build": {
     "appId": "com.edgedrop.app",
@@ -49,10 +50,6 @@
       "!**/node_modules/koffi/doc/**"
     ],
     "extraResources": [
-      {
-        "from": "resources/startup/EdgeDropStartup.exe",
-        "to": "startup/EdgeDropStartup.exe"
-      },
       {
         "from": "node_modules/emoji-datasource-twitter/img/twitter/64",
         "to": "emoji/64"
@@ -84,7 +81,13 @@
           ]
         }
       ],
-      "icon": "resources/icon.ico"
+      "icon": "resources/icon.ico",
+      "extraResources": [
+        {
+          "from": "resources/startup/EdgeDropStartup.exe",
+          "to": "startup/EdgeDropStartup.exe"
+        }
+      ]
     },
     "nsis": {
       "oneClick": false,
@@ -106,6 +109,36 @@
         "internetClient"
       ],
       "customExtensionsPath": "resources/appx/startup-extensions.xml"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "resources/icon-mac.png",
+      "category": "public.app-category.productivity",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "notarize": false,
+      "artifactName": "Edge-Drop-${version}-mac-${arch}.${ext}",
+      "extendInfo": {
+        "LSUIElement": true,
+        "NSAccessibilityUsageDescription": "Edge-Drop presses Cmd+V for you to paste the item you clicked into the app you are using."
+      }
+    },
+    "dmg": {
+      "title": "Edge-Drop ${version}"
     }
   },
   "devDependencies": {

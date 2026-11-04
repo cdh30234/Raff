@@ -15,6 +15,7 @@
 import { BrowserWindow, screen, shell, powerMonitor } from 'electron'
 import { join } from 'node:path'
 import koffi from 'koffi'
+import { macActivatePid, macFrontmostPid, macNativeAvailable } from './macNative'
 import { APP_CONFIG } from './config'
 import { runtime } from './config'
 import { PATHS } from '../store/paths'
@@ -78,8 +79,22 @@ if (process.platform === 'win32') {
 const GWL_EXSTYLE = -20
 const WS_EX_NOACTIVATE = 0x08000000
 
+const IS_MAC = process.platform === 'darwin' && macNativeAvailable
+
+/** Foreground tracking is available: Win32 HWNDs, or app pids on macOS. */
+function hasFgApi(): boolean {
+  return IS_MAC || (process.platform === 'win32' && !!getForegroundWindowFn)
+}
+
+function readFg(): number | bigint {
+  if (IS_MAC) return macFrontmostPid()
+  return getForegroundWindowFn ? getForegroundWindowFn() : 0
+}
+
 function getHwnd(win: BrowserWindow | null): number | bigint {
   if (!win || win.isDestroyed()) return 0
+  // On macOS the "window handle" we compare against is our own process id.
+  if (IS_MAC) return process.pid
   const handleBuf = win.getNativeWindowHandle()
   return process.arch === 'x64' ? handleBuf.readBigUInt64LE(0) : handleBuf.readUInt32LE(0)
 }
@@ -243,17 +258,17 @@ function hwndHex(h: number | bigint): string {
 /** Diagnostic probe: logs the foreground window at a named checkpoint. */
 export function traceFg(tag: string): void {
   try {
-    if (process.platform !== 'win32' || !getForegroundWindowFn) return
-    const fg = getForegroundWindowFn()
+    if (!hasFgApi()) return
+    const fg = readFg()
     console.log(`[FocusTrace] ${tag} fg=${fg ? hwndHex(fg) : 'none'}`)
   } catch { /* ignore */ }
 }
 
 /** Record the foreground window unless it is our own. Last-wins. */
 export function captureExternalForeground(): void {
-  if (process.platform !== 'win32' || !getForegroundWindowFn) return
+  if (!hasFgApi()) return
   try {
-    const fg = getForegroundWindowFn()
+    const fg = readFg()
     if (!fg || hwndNumber(fg) === 0) return
     const self = getHwnd(mainWindow)
     if (self && hwndNumber(fg) === hwndNumber(self)) return
@@ -264,10 +279,10 @@ export function captureExternalForeground(): void {
 
 /** True when OUR window currently holds the OS foreground (search typing). */
 export function holdsOwnForeground(): boolean {
-  if (process.platform !== 'win32' || !getForegroundWindowFn) return false
+  if (!hasFgApi()) return false
   if (!mainWindow || mainWindow.isDestroyed()) return false
   try {
-    const fg = getForegroundWindowFn()
+    const fg = readFg()
     const self = getHwnd(mainWindow)
     return !!fg && !!self && hwndNumber(fg) === hwndNumber(self)
   } catch {
@@ -278,8 +293,8 @@ export function holdsOwnForeground(): boolean {
 /** Read the current foreground window (0 when none). */
 function currentFg(): number | bigint {
   try {
-    if (process.platform !== 'win32' || !getForegroundWindowFn) return 0
-    return getForegroundWindowFn() ?? 0
+    if (!hasFgApi()) return 0
+    return readFg() ?? 0
   } catch {
     return 0
   }
@@ -297,7 +312,7 @@ function usableHwnd(h: number | bigint): boolean {
  * foreground afterwards.
  */
 export async function restoreFgAwaited(target: number | bigint, tag: string, isStale?: () => boolean): Promise<boolean> {
-  if (process.platform !== 'win32' || !setForegroundWindowFn || !getForegroundWindowFn) {
+  if (!IS_MAC && (process.platform !== 'win32' || !setForegroundWindowFn || !getForegroundWindowFn)) {
     return false
   }
   if (!usableHwnd(target)) {
@@ -310,10 +325,10 @@ export async function restoreFgAwaited(target: number | bigint, tag: string, isS
       return false
     }
     try {
-      const before = getForegroundWindowFn()
-      const ok = !!setForegroundWindowFn(target)
-      await new Promise((r) => setTimeout(r, 30))
-      const fg = getForegroundWindowFn()
+      const before = readFg()
+      const ok = IS_MAC ? macActivatePid(Number(target)) : !!setForegroundWindowFn!(target)
+      await new Promise((r) => setTimeout(r, IS_MAC ? 60 : 30))
+      const fg = readFg()
       const verified = !!fg && hwndNumber(fg) === hwndNumber(target)
       console.log(
         `[Focus] ${tag} attempt ${attempt}: setFg=${ok} verified=${verified} ` +
@@ -349,7 +364,7 @@ export function restoreExternalFocusAwaited(): Promise<boolean> {
  *   longer settle on success, -1 on failure.
  */
 export async function resolvePasteTarget(normalDelayMs: number): Promise<number> {
-  if (process.platform !== 'win32') return normalDelayMs
+  if (!hasFgApi()) return normalDelayMs
   try {
     if (!holdsOwnForeground()) return normalDelayMs
     setWindowFocusable(false)
@@ -797,6 +812,9 @@ export function createWindow(): BrowserWindow {
     focusable: false,
     backgroundColor: '#00000000',
     roundedCorners: false,
+    // macOS: a non-activating NSPanel floats over full-screen apps and
+    // never steals focus from the app the user is pasting into.
+    ...(process.platform === 'darwin' ? { type: 'panel' as const, hiddenInMissionControl: true } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.cjs'),
       contextIsolation: true,
@@ -808,6 +826,11 @@ export function createWindow(): BrowserWindow {
 
   // Start click-through with no forwarding — edge detection is done via cursor poll.
   mainWindow.setIgnoreMouseEvents(true, { forward: false })
+
+  if (process.platform === 'darwin') {
+    // Follow the user across Spaces and over full-screen apps.
+    mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true })
+  }
 
   // Apply WS_EX_NOACTIVATE so clicking the panel never steals OS focus from the active application.
   applyNoActivateStyle(mainWindow, true)

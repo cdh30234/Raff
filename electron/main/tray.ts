@@ -75,6 +75,17 @@ export function getTrayImage(): Electron.NativeImage {
     ? preferredPath
     : (existsSync(fallbackPath) ? fallbackPath : null)
 
+  if (process.platform === 'darwin' && existsSync(PATHS.trayDarkIcon())) {
+    // Menu bar: an 18pt template image (with a 2x rep) that macOS tints for
+    // light/dark menu bars itself.
+    const src = nativeImage.createFromPath(PATHS.trayDarkIcon())
+    const img = nativeImage.createEmpty()
+    img.addRepresentation({ scaleFactor: 1, buffer: src.resize({ width: 18, height: 18, quality: 'best' }).toPNG() })
+    img.addRepresentation({ scaleFactor: 2, buffer: src.resize({ width: 36, height: 36, quality: 'best' }).toPNG() })
+    img.setTemplateImage(true)
+    return img
+  }
+
   if (resolvedPath) {
     // Load and resize to exactly 32x32. Windows system tray renders icons at 16x16
     // logical pixels but uses 32x32 physical pixels on 2x DPI displays.
