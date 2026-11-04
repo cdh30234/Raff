@@ -81,6 +81,16 @@ const WS_EX_NOACTIVATE = 0x08000000
 
 const IS_MAC = process.platform === 'darwin' && macNativeAvailable
 
+/**
+ * The shelf's always-on-top level. Windows: 'screen-saver', above full-screen
+ * games and video. macOS: 'pop-up-menu' (101) — still above full-screen apps
+ * (the window is a full-screen auxiliary on every Space), but below the
+ * drag-image level (500). macOS never offers a drop to a window above the
+ * drag layer, so at 'screen-saver' (1000) files dragged onto the open shelf
+ * went to the app behind it.
+ */
+const TOP_LEVEL = process.platform === 'darwin' ? 'pop-up-menu' : 'screen-saver'
+
 /** Foreground tracking is available: Win32 HWNDs, or app pids on macOS. */
 function hasFgApi(): boolean {
   return IS_MAC || (process.platform === 'win32' && !!getForegroundWindowFn)
@@ -406,13 +416,13 @@ export function setInteractive(value: boolean): void {
     mainWindow.setIgnoreMouseEvents(false)
     // Use 'screen-saver' level to stay above fullscreen apps (YouTube fullscreen, games, etc.)
     // 'floating' (HWND_TOPMOST) can be pushed behind by fullscreen D3D/browser windows.
-    mainWindow.setAlwaysOnTop(true, 'screen-saver')
+    mainWindow.setAlwaysOnTop(true, TOP_LEVEL)
     mainWindow.setSkipTaskbar(true)
     applyNoActivateStyle(mainWindow, true)
   } else {
     // Panel is closed: full click-through, no forwarding needed.
     mainWindow.setIgnoreMouseEvents(true, { forward: false })
-    mainWindow.setAlwaysOnTop(true, 'screen-saver')
+    mainWindow.setAlwaysOnTop(true, TOP_LEVEL)
     mainWindow.setSkipTaskbar(true)
     applyNoActivateStyle(mainWindow, true)
 
@@ -533,7 +543,7 @@ export function setHeartbeatPaused(paused: boolean): void {
     } else {
       // Re-assert z-order immediately when drag ends so the window snaps back
       // to the correct level without waiting for the next heartbeat tick.
-      mainWindow.setAlwaysOnTop(true, 'screen-saver')
+      mainWindow.setAlwaysOnTop(true, TOP_LEVEL)
     }
   }
 }
@@ -865,7 +875,7 @@ export function createWindow(): BrowserWindow {
           console.log('[Main] TaskbarCreated message received from Windows Explorer — refreshing taskbar state & tray')
           if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.setSkipTaskbar(true)
-            mainWindow.setAlwaysOnTop(true, 'screen-saver')
+            mainWindow.setAlwaysOnTop(true, TOP_LEVEL)
           }
           for (const listener of onTaskbarCreatedListeners) {
             try { listener() } catch (err) { console.error('[Main] Error in onTaskbarCreated listener:', err) }
@@ -926,7 +936,7 @@ export function createWindow(): BrowserWindow {
 
   // Respect OS-level always-on-top reordering.
   mainWindow.on('focus', () => {
-    mainWindow?.setAlwaysOnTop(true, 'screen-saver')
+    mainWindow?.setAlwaysOnTop(true, TOP_LEVEL)
   })
 
   // Open external links in the default browser (web, mail and Store links
@@ -951,7 +961,7 @@ export function createWindow(): BrowserWindow {
     if (!mainWindow) return
     mainWindow.showInactive()
     // 'screen-saver' level stays above fullscreen browser windows and games.
-    mainWindow.setAlwaysOnTop(true, 'screen-saver')
+    mainWindow.setAlwaysOnTop(true, TOP_LEVEL)
     applyNoActivateStyle(mainWindow, true)
   })
 
@@ -978,7 +988,7 @@ export function createWindow(): BrowserWindow {
   heartbeatTimer = setInterval(() => {
     if (runtime.quitting || heartbeatPaused || interactive) return
     if (mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible()) {
-      mainWindow.setAlwaysOnTop(true, 'screen-saver')
+      mainWindow.setAlwaysOnTop(true, TOP_LEVEL)
     }
   }, 2000)
 
@@ -1102,7 +1112,7 @@ export function popUpAndRetract(durationMs = 1500): void {
   if (!mainWindow || mainWindow.isDestroyed() || !mainWindow.webContents || mainWindow.webContents.isDestroyed()) return
   if (mainWindow.isMinimized()) mainWindow.restore()
   mainWindow.showInactive()
-  mainWindow.setAlwaysOnTop(true, 'screen-saver')
+  mainWindow.setAlwaysOnTop(true, TOP_LEVEL)
   mainWindow.setSkipTaskbar(true)
 
   const wasAlreadyOpen = interactive
@@ -1125,7 +1135,7 @@ export function repositionWindow(): void {
   if (!mainWindow || mainWindow.isDestroyed()) return
   if (mainWindow.isMinimized()) mainWindow.restore()
   mainWindow.showInactive()
-  mainWindow.setAlwaysOnTop(true, 'screen-saver')
+  mainWindow.setAlwaysOnTop(true, TOP_LEVEL)
   mainWindow.setSkipTaskbar(true)
   const g = getStickGeometry()
   mainWindow.setBounds({ ...g })
@@ -1137,7 +1147,7 @@ export function setVisible(visible: boolean): void {
   if (!mainWindow) return
   if (visible) {
     mainWindow.showInactive()
-    mainWindow.setAlwaysOnTop(true, 'screen-saver')
+    mainWindow.setAlwaysOnTop(true, TOP_LEVEL)
     mainWindow.setSkipTaskbar(true)
   } else {
     mainWindow.hide()

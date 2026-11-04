@@ -97,6 +97,13 @@ describe('main: a drag from another app (externalDrag.ts)', () => {
     expect(ipc).toMatch(/clearInterval\(waitForDrop\)\n        setOwnDragActive\(false\)\n        finishDragOut\(sender, req, dragStarted, isWholeItemDrag\)/)
   })
 
+  it('macOS keeps the shelf below the drag-image layer so drops reach it', () => {
+    const win = read('electron/main/window.ts')
+    // macOS never offers a drop to a window above the drag layer (500); 'screen-saver' is 1000.
+    expect(win).toContain("const TOP_LEVEL = process.platform === 'darwin' ? 'pop-up-menu' : 'screen-saver'")
+    expect(win).not.toContain("setAlwaysOnTop(true, 'screen-saver')")
+  })
+
   it('macOS sees drags from other apps through the drag pasteboard', () => {
     const ext = read('electron/main/externalDrag.ts')
     expect(ext).toContain("if (process.platform === 'darwin') {")
