@@ -1,3 +1,5 @@
+<p align="center"><img src="resources/icon-mac.png" width="128" height="128" alt="Raff icon"></p>
+
 # Raff · رف
 
 **A clipboard shelf on the edge of your Mac screen.**

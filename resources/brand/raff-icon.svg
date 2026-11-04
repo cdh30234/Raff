@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2c2c30"/>
+      <stop offset="1" stop-color="#101012"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.03"/>
+    </linearGradient>
+    <!-- Fluid merge: blur, then a hard alpha edge, so touching shapes join like drops. -->
+    <filter id="goo" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="16"/>
+      <feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 44 -21"/>
+    </filter>
+  </defs>
+  <!-- tile -->
+  <rect x="10" y="10" width="1004" height="1004" rx="224" fill="url(#bg)"/>
+  <rect x="11.5" y="11.5" width="1001" height="1001" rx="222.5" fill="none" stroke="url(#rim)" stroke-width="3"/>
+
+  <g transform="translate(0,-34)" filter="url(#goo)" fill="#ffffff" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
+    <!-- top shelf: swollen at both ends, slim in the middle -->
+    <path d="M 214 470 C 350 440, 490 482, 630 458 C 712 444, 772 424, 806 412" fill="none" stroke-width="90"/>
+    <circle cx="204" cy="472" r="64" stroke="none"/>
+    <circle cx="808" cy="410" r="58" stroke="none"/>
+    <!-- items resting on it: a card and a drop, a clear gap above the shelf -->
+    <rect x="486" y="180" width="192" height="184" rx="64" stroke="none"/>
+    <circle cx="346" cy="312" r="58" stroke="none"/>
+    <!-- lower shelf: heavier left end, then the right end curls down like ر -->
+    <path d="M 236 696 C 380 656, 520 718, 650 696 C 746 680, 808 694, 812 760 C 816 826, 746 868, 646 876" fill="none" stroke-width="96"/>
+    <circle cx="224" cy="698" r="72" stroke="none"/>
+    <circle cx="640" cy="874" r="56" stroke="none"/>
+  </g>
+</svg>
