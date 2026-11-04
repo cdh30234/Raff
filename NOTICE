@@ -1,0 +1,21 @@
+Raff
+Copyright 2026 Mohamed Hassan
+
+This product is a modified version of Edge-Drop
+(https://github.com/Deepender25/Edge-Drop), Copyright Deepender25,
+licensed under the Apache License, Version 2.0 (see LICENSE).
+"Edge-Drop" is the original project's name; Raff is not affiliated with
+or endorsed by it.
+
+Changes made in Raff (summary; see the git history for details):
+  - macOS (Apple Silicon) port: NSPasteboard clipboard, Cmd+V paste,
+    non-activating floating panel, drag in / drag out, launch at login
+  - Arabic and right-to-left interface polish, bundled Arabic font
+  - New name and identity, update notifications from Raff's own releases
+
+Third-party material bundled with Raff:
+  - Twemoji graphics (emoji-datasource-twitter), Copyright Twitter, Inc. and
+    other contributors, licensed under CC-BY 4.0
+    (https://creativecommons.org/licenses/by/4.0/)
+  - Plus Jakarta Sans, IBM Plex Sans Arabic and JetBrains Mono fonts,
+    licensed under the SIL Open Font License 1.1

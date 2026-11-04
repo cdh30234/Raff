@@ -22,7 +22,6 @@ import {
   CloseIcon,
   GithubOctocatLogo,
   GlobeIcon,
-  HeartIcon,
   InfoIcon,
   LogOutIcon,
   MicrosoftStoreLogo
@@ -33,6 +32,7 @@ import { WakeSlider } from './WakeSlider'
 import { playDialTickSound, playToggleSound, playButtonClickSound } from '../lib/soundEffects'
 import { languageLabel, useTranslation } from '../i18n'
 import '../styles/settings.css'
+import { BRAND } from '../../shared/brand'
 
 /** Widest a top-dock settings column grows to (settings.css .set-col max-width). */
 const SET_COL_MAX = 420
@@ -387,17 +387,7 @@ export function Settings({
         <h3 className="set-group-label">{t('footer.communityAndSupport') || 'COMMUNITY & SUPPORT'}</h3>
         <div className="settings-support-tagline">{t('footer.supportTagline') || '100% free & open-source clipboard'}</div>
         <div className="settings-support-actions">
-          <button
-            type="button"
-            className="settings-support-btn is-primary kofi-support-btn"
-            onClick={() => {
-              playButtonClickSound()
-              window.open('https://www.edgedrop.app/supportedgedrop', '_blank')
-            }}
-          >
-            <HeartIcon width={13} height={13} />
-            <span>{t('footer.supportOnKofi')}</span>
-          </button>
+          {/* Raff: no donation link — upstream's Ko-fi supports Edge-Drop's author, not this app. */}
           {isStoreBuild ? (
             <button
               type="button"
@@ -416,19 +406,31 @@ export function Settings({
               className="settings-support-btn github-promo-btn"
               onClick={() => {
                 playButtonClickSound()
-                window.open('https://github.com/Deepender25/Edge-Drop', '_blank')
+                window.open(BRAND.repoUrl, '_blank')
               }}
             >
               <GithubOctocatLogo width={13} height={13} className="github-octocat-icon" />
               <span>{t('footer.starOnGithub')}</span>
             </button>
           )}
+          {/* Credit for the project Raff is built on (Apache-2.0). */}
+          <button
+            type="button"
+            className="settings-support-btn"
+            onClick={() => {
+              playButtonClickSound()
+              window.open(BRAND.upstream.url, '_blank')
+            }}
+          >
+            <span>{`Based on ${BRAND.upstream.name} by ${BRAND.upstream.author}`}</span>
+          </button>
         </div>
       </section>
 
       <section className={`settings-support settings-about${isHorizontal ? ' is-h' : ''}`} data-card="about">
         <h3 className="set-group-label">{t('groups.aboutEdgeDrop') || 'ABOUT EDGE-DROP'}</h3>
-        <div className="settings-about-title">Edge-Drop {currentVersion || '0.3.1'}</div>
+        <div className="settings-about-title">{BRAND.name} {currentVersion}</div>
+        <div className="settings-support-tagline">{resolvedLang === 'ar' ? `تطوير ${'محمد حسن'}` : `by ${BRAND.developer}`}</div>
         <div className="settings-support-tagline">{t('footer.feedbackDesc')}</div>
         <div className="settings-support-actions">
           <button
@@ -436,7 +438,7 @@ export function Settings({
             className="settings-support-btn"
             onClick={() => {
               playButtonClickSound()
-              window.open('https://github.com/Deepender25/Edge-Drop/issues/new/choose', '_blank')
+              window.open(BRAND.issuesUrl, '_blank')
             }}
           >
             <span>{t('footer.submitFeedback')}</span>
@@ -463,7 +465,7 @@ export function Settings({
     if (targetVersion) {
       patch({ lastSeenChangelogVersion: targetVersion })
     }
-    window.open('https://www.edgedrop.app/changelog', '_blank')
+    window.open(BRAND.releasesUrl, '_blank')
   }
 
   // ── Promoted Top Update Card Renderer (Vertical Layout) ────────────────────

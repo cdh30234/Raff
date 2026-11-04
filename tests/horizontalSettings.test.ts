@@ -197,13 +197,14 @@ describe('Horizontal Card Shelf Settings Layout', () => {
     expect(css).toContain('.placement-3way-wrap .pill')
   })
 
-  it('After the settings come two cards: Community & Support, then About Edge-Drop', () => {
+  it('After the settings come two cards: Community & Support, then About Raff', () => {
     const src = read('src/components/Settings.tsx')
     const cards = src.slice(src.indexOf('const renderClosingCards = () =>'), src.indexOf('const handleOpenChangelog'))
     const support = cards.slice(0, cards.indexOf('data-card="about"'))
     const about = cards.slice(cards.indexOf('data-card="about"'))
     expect(support).toContain("t('footer.supportTagline')")
-    expect(support).toContain("<span>{t('footer.supportOnKofi')}</span>")
+    // Raff has no donation link: upstream's Ko-fi supports Edge-Drop's author.
+    expect(support).not.toContain("t('footer.supportOnKofi')")
     expect(support).not.toContain("t('footer.supportDev')")
     expect(support).toContain("<span>{t('footer.starOnGithub')}</span>")
     expect(about).toContain("t('groups.aboutEdgeDrop')")

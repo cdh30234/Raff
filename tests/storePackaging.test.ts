@@ -151,10 +151,12 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
   })
 
   it('keeps GitHub Releases as the NSIS publish source and NSIS artifact name', () => {
+    // Raff publishes (and its macOS updater reads) its own releases.
     expect(pkg.build.publish).toEqual({
       provider: 'github',
-      owner: 'Deepender25',
-      repo: 'Edge-Drop'
+      owner: 'cdh30234',
+      repo: 'Raff',
+      releaseType: 'release'
     })
     expect(pkg.build.nsis.artifactName).toContain('${version}')
     expect(pkg.build.nsis.artifactName).toMatch(/\.\$\{ext\}$/)
@@ -199,7 +201,9 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
     expect(src).toContain('store-review-promo-btn')
     expect(src).toContain('ms-windows-store://review/?ProductId=9P3JMHN9M4NR')
     expect(src).toContain('github-promo-btn')
-    expect(src).toContain('https://github.com/Deepender25/Edge-Drop')
+    expect(src).toContain('window.open(BRAND.repoUrl')
+    // Credit to the project Raff is based on stays in Settings.
+    expect(src).toContain('window.open(BRAND.upstream.url')
   })
 
   it('updater module hard-returns on Store for every public entry', () => {

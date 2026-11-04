@@ -1,8 +1,11 @@
 {
-  "name": "edge-drop",
-  "version": "0.4.0",
-  "description": "Edge-Drop — a clipboard manager that lives on the left edge of your screen and expands on hover.",
-  "author": "Edge-Drop",
+  "name": "raff",
+  "version": "1.0.0",
+  "description": "Raff — a clipboard shelf on the edge of your Mac screen. Based on Edge-Drop by Deepender25.",
+  "author": {
+    "name": "Mohamed Hassan",
+    "url": "https://github.com/cdh30234"
+  },
   "license": "Apache-2.0",
   "private": true,
   "main": "out/main/index.js",
@@ -21,11 +24,12 @@
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "test": "vitest run",
     "postinstall": "install-electron",
-    "build:mac": "npm run build && electron-builder --mac dmg zip --arm64 -c.extraMetadata.buildTarget=github"
+    "build:mac": "npm run build && electron-builder --mac dmg zip --arm64 --publish never",
+    "release:mac": "sh scripts/release-mac.sh"
   },
   "build": {
-    "appId": "com.edgedrop.app",
-    "productName": "Edge-Drop",
+    "appId": "com.mohamedhassan.raff",
+    "productName": "Raff",
     "directories": {
       "output": "dist",
       "buildResources": "resources"
@@ -47,7 +51,9 @@
       "!**/node_modules/svg-path-bbox/**",
       "!**/node_modules/react-dom/**",
       "!**/node_modules/prism-react-renderer/**",
-      "!**/node_modules/koffi/doc/**"
+      "!**/node_modules/koffi/doc/**",
+      "LICENSE",
+      "NOTICE"
     ],
     "extraResources": [
       {
@@ -63,8 +69,9 @@
     ],
     "publish": {
       "provider": "github",
-      "owner": "Deepender25",
-      "repo": "Edge-Drop"
+      "owner": "cdh30234",
+      "repo": "Raff",
+      "releaseType": "release"
     },
     "win": {
       "target": [
@@ -131,15 +138,16 @@
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
       "notarize": false,
-      "artifactName": "Edge-Drop-${version}-mac-${arch}.${ext}",
+      "artifactName": "Raff-${version}-mac-${arch}.${ext}",
       "extendInfo": {
         "LSUIElement": true,
-        "NSAccessibilityUsageDescription": "Edge-Drop presses Cmd+V for you to paste the item you clicked into the app you are using."
+        "NSAccessibilityUsageDescription": "Raff presses Cmd+V for you to paste the item you clicked into the app you are using."
       }
     },
     "dmg": {
-      "title": "Edge-Drop ${version}"
-    }
+      "title": "Raff ${version}"
+    },
+    "copyright": "Copyright © 2026 Mohamed Hassan. Based on Edge-Drop © Deepender25 (Apache-2.0)."
   },
   "devDependencies": {
     "@fontsource/ibm-plex-sans-arabic": "^5.3.0",
@@ -171,5 +179,10 @@
     "koffi": "^3.1.2",
     "react": "^18.2.0",
     "zustand": "^4.5.2"
+  },
+  "homepage": "https://github.com/cdh30234/Raff",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cdh30234/Raff.git"
   }
 }

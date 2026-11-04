@@ -9,6 +9,7 @@ import { EmojiCategoryBar } from './EmojiCategoryBar'
 import { useTranslation } from '../i18n'
 import { ClearMenu } from './ClearMenu'
 import type { ClipboardItemDto, TypeFilter } from '../../shared/types'
+import { BRAND } from '../../shared/brand'
 
 export interface HeaderProps {
   isHorizontal?: boolean
@@ -43,7 +44,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
     if (currentVersion) {
       patchSettings({ lastSeenChangelogVersion: currentVersion })
     }
-    window.open('https://www.edgedrop.app/changelog', '_blank')
+    window.open(BRAND.releasesUrl, '_blank')
   }
 
   const typeFilter = useStore((s) => s.typeFilter)

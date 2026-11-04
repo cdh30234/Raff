@@ -17,6 +17,7 @@ import { pushState } from './state'
 import { createOnboardingWindow } from './onboardingWindow'
 import { en } from '../../src/i18n/translations'
 import { mainT, resolveLang } from './i18n'
+import { BRAND } from '../../shared/brand'
 
 let tray: Tray | null = null
 let themeListenerRegistered = false
@@ -111,7 +112,7 @@ export function updateTrayIcon(): void {
 export function createTray(): Tray {
   const image = getTrayImage()
   tray = new Tray(image)
-  tray.setToolTip('Edge-Drop')
+  tray.setToolTip(BRAND.name)
 
   // Register system theme change listener once
   if (!themeListenerRegistered) {

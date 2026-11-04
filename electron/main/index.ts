@@ -20,6 +20,7 @@ import { prewarmDragIcons, setFileNameWords } from './drag'
 import { mainT } from './i18n'
 import { initState, getWatcher, loadSettings, pushState, stopStateTimers, getStore } from './state'
 import { initAutoUpdater } from './updater'
+import { migrateFromEdgeDrop } from './migrateFromEdgeDrop'
 import { createOnboardingWindow } from './onboardingWindow'
 import { onboardingDue } from '../../shared/onboarding'
 import { startFullscreenMonitor, stopFullscreenMonitor, triggerFullscreenCheck } from './fullscreen'
@@ -50,6 +51,9 @@ app.commandLine.appendSwitch('js-flags', '--max-old-space-size=512 --expose-gc')
 // ---- single instance -------------------------------------------------------
 /** After an update, a silent start at login shows the new tour this long after launch (see onboardingDue). */
 const UPDATE_TOUR_DELAY_AT_LOGIN_MS = 15_000
+
+// Before anything reads userData: bring over history from the Edge-Drop build.
+migrateFromEdgeDrop()
 
 const gotLock = app.requestSingleInstanceLock()
 if (!gotLock) {

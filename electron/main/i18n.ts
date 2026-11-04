@@ -7,6 +7,7 @@
 import { app } from 'electron'
 import { loadSettings } from '../store/settings'
 import { TRANSLATIONS, en } from '../../src/i18n/translations'
+import { brandText } from '../../shared/brand'
 
 /** A language setting ('system' or a code) → a code TRANSLATIONS has. */
 export function resolveLang(setting?: string): string {
@@ -36,5 +37,5 @@ export function mainT(path: string, params?: Record<string, string | number>, la
   if (params) {
     for (const [k, v] of Object.entries(params)) val = val.replace(new RegExp(`\\{${k}\\}`, 'g'), () => String(v))
   }
-  return val
+  return brandText(val)
 }

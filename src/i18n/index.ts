@@ -1,5 +1,6 @@
 import { useStore } from '../store/appStore'
 import { LANGUAGES, TRANSLATIONS, en, type LanguageMeta } from './translations'
+import { brandText } from '../../shared/brand'
 
 /**
  * Resolves the active language code.
@@ -105,6 +106,7 @@ export function t(path: string, params?: Record<string, string | number>): strin
     }
   }
 
+  val = brandText(val)
   return IS_MAC ? macKeys(val) : val
 }
 
