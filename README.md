@@ -48,4 +48,4 @@ Apps already installed see the new version within a few hours (or at their next 
 
 Raff is based on **[Edge-Drop](https://github.com/Deepender25/Edge-Drop)** by Deepender25, licensed under the Apache License 2.0. Raff keeps that license (see [LICENSE](LICENSE)) and lists its changes and bundled third-party material in [NOTICE](NOTICE). Raff is not affiliated with or endorsed by Edge-Drop.
 
-The original Edge-Drop README is kept in [README.edge-drop.md](README.edge-drop.md).
+The original Edge-Drop README, with its feature tour, is on [the Edge-Drop repository](https://github.com/Deepender25/Edge-Drop#readme).

@@ -112,35 +112,16 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
     expect(pkg.devDependencies['emoji-datasource-twitter']).toBeTruthy()
   })
 
-  it('ships no onboarding videos (the tour plays the real app) and keeps README images out of the pack', () => {
+  it('ships no onboarding videos (the tour plays the real app) and keeps README art out of the pack', () => {
     const publicFiles = existsSync(join(root, 'public')) ? readdirSync(join(root, 'public')) : []
     expect(publicFiles.filter((name) => name.endsWith('.webm'))).toEqual([])
-    const readmeDir = join(root, '.github/readme')
-    for (const name of [
-      'banner.gif',
-      'open.gif',
-      'positions.gif',
-      'copy.gif',
-      'drag-in-out.gif',
-      'stacks.gif',
-      'preview.gif',
-      'notes-search.gif',
-      'kofi-qr.png',
-      'upi-sponsor-qr.png'
-    ]) {
-      expect(existsSync(join(readmeDir, name))).toBe(true)
-    }
+    // Raff does not carry upstream's README art (.github/readme/); its README
+    // only uses images that exist in the repo, and none of them ship in the app.
     const readme = read('README.md')
-    expect(readme).toContain('.github/readme/banner.gif')
-    expect(readme).toContain('.github/readme/open.gif')
-    expect(readme).toContain('.github/readme/kofi-qr.png')
-    expect(readme).toContain('.github/readme/upi-sponsor-qr.png')
-    // every image the README shows from the repo is there
-    const local = [...readme.matchAll(/src="(\.github\/readme\/[^"]+)"/g)].map((m) => m[1])
-    expect(local.length).toBeGreaterThan(10)
+    const local = [...readme.matchAll(/(?:src="|\]\()(\.?\/?[^")]+\.(?:gif|png|jpg|webp))/g)].map((m) => m[1]).filter((p) => !/^https?:/.test(p))
     expect(local.filter((path) => !existsSync(join(root, path)))).toEqual([])
     expect(readme).not.toMatch(/src="public\/[^"]+\.(gif|png)"/)
-    expect(readme).not.toContain('/main/public/')
+    expect(pkg.build.files.some((f: string) => f.includes('.github'))).toBe(false)
   })
 
   it('unpacks native addons the Store package must load from disk', () => {
