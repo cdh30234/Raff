@@ -11,7 +11,7 @@ import { readFile } from 'node:fs/promises'
 import { basename, join } from 'node:path'
 import { execFile } from 'node:child_process'
 import { psHost, getSystemPowerShellPath, getWritableCwd } from './powershell'
-import { macCanSendKeys, macSendCmdV, macWriteFileUrls } from './macNative'
+import { macCanSendKeys, macPressedMouseButtons, macSendCmdV, macWriteFileUrls } from './macNative'
 import { filterValidPaths, isExistingFilePath } from './pathValidation'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
 import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher } from './state'
@@ -24,7 +24,7 @@ import { startDragOut, resolveDragData, prestageDrag, stageDragFile, formatClipb
 import { setOwnDragActive } from './externalDrag'
 import { clipboardSignature, formatTabularDataForClipboard, signatureMatchesItem } from '../clipboard/formats'
 import * as clipboard from '../clipboard/osClipboard'
-import type { ClipboardItem, ItemData, MergeResult } from '../../shared/types'
+import type { ClipboardItem, DragRequest, ItemData, MergeResult } from '../../shared/types'
 import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState, getCachedUpdateState, triggerBackgroundCheck } from './updater'
 import { createId } from '../store/ids'
 import { isStoreBuild } from './config'
@@ -919,46 +919,76 @@ export function registerSendListeners(): void {
     let dragStarted: boolean
     try {
       dragStarted = startDragOut(sender, data, capturedAt, subIndex)
-    } finally {
+    } catch (err) {
       setOwnDragActive(false)
-    }
-    console.log('[IPC] start-drag returned, sending drag-end')
-    sender.send('item:drag-end')
-
-    // Re-enable the heartbeat now that the drag is over.
-    setHeartbeatPaused(false)
-
-    // Check if the user dropped the item back onto our window!
-    const { screen, BrowserWindow } = require('electron')
-    const point = screen.getCursorScreenPoint()
-    const win = BrowserWindow.fromWebContents(sender)
-    let isInside = false
-    if (win && !win.isDestroyed()) {
-      const bounds = win.getBounds()
-      isInside = point.x >= bounds.x && point.x <= bounds.x + bounds.width &&
-                 point.y >= bounds.y && point.y <= bounds.y + bounds.height
-      if (isInside) {
-        console.log(`[IPC] Drag ended inside window! Triggering internal-drop at x=${point.x - bounds.x}, y=${point.y - bounds.y}`)
-        sender.send('item:internal-drop', { x: point.x - bounds.x, y: point.y - bounds.y })
-      }
+      throw err
     }
 
-    if (dragStarted && isWholeItemDrag && !isInside) {
-      // Usage accounting parity with click-to-paste: a whole-item drag counts
-      // as a use ONLY when successfully dropped outside into another application.
-      // Dropping back onto the shelf or cancelling does not bump hitCount.
-      if (loadSettings().movePastedToTop !== false && getStore().get(req.id)) {
-        getStore().touch(req.id)
-      }
-      // 'usage' reason: this push is bookkeeping from a manual drag-out, so
-      // the renderer must NOT flash the capture copy-indicator for it.
-      pushState.items({ reason: 'usage' })
+    // Windows: startDrag runs the OLE drag loop and returns at the drop.
+    // macOS: it returns at once and the drag goes on; the drop is the moment
+    // the mouse button comes up, so the end-of-drag work waits for that.
+    if (process.platform === 'darwin' && dragStarted) {
+      const startedAt = Date.now()
+      const waitForDrop = setInterval(() => {
+        if (sender.isDestroyed()) {
+          clearInterval(waitForDrop)
+          setOwnDragActive(false)
+          return
+        }
+        if (macPressedMouseButtons() !== 0 && Date.now() - startedAt < MAC_DRAG_MAX_MS) return
+        clearInterval(waitForDrop)
+        setOwnDragActive(false)
+        finishDragOut(sender, req, dragStarted, isWholeItemDrag)
+      }, MAC_DRAG_POLL_MS)
+      return
     }
+    setOwnDragActive(false)
+    finishDragOut(sender, req, dragStarted, isWholeItemDrag)
   })
 
   on('item:prestage-drag', (_sender, req) => {
     prestageDrag(req)
   })
+}
+
+/** macOS drag-out: how often to look for the drop (mouse up), and when to give up. */
+const MAC_DRAG_POLL_MS = 30
+const MAC_DRAG_MAX_MS = 120_000
+
+/** After the drop: tell the renderer, handle a drop back onto the shelf, count the use. */
+function finishDragOut(sender: Electron.WebContents, req: DragRequest, dragStarted: boolean, isWholeItemDrag: boolean): void {
+  console.log('[IPC] start-drag returned, sending drag-end')
+  sender.send('item:drag-end')
+
+  // Re-enable the heartbeat now that the drag is over.
+  setHeartbeatPaused(false)
+
+  // Check if the user dropped the item back onto our window!
+  const { screen, BrowserWindow } = require('electron')
+  const point = screen.getCursorScreenPoint()
+  const win = BrowserWindow.fromWebContents(sender)
+  let isInside = false
+  if (win && !win.isDestroyed()) {
+    const bounds = win.getBounds()
+    isInside = point.x >= bounds.x && point.x <= bounds.x + bounds.width &&
+               point.y >= bounds.y && point.y <= bounds.y + bounds.height
+    if (isInside) {
+      console.log(`[IPC] Drag ended inside window! Triggering internal-drop at x=${point.x - bounds.x}, y=${point.y - bounds.y}`)
+      sender.send('item:internal-drop', { x: point.x - bounds.x, y: point.y - bounds.y })
+    }
+  }
+
+  if (dragStarted && isWholeItemDrag && !isInside) {
+    // Usage accounting parity with click-to-paste: a whole-item drag counts
+    // as a use ONLY when successfully dropped outside into another application.
+    // Dropping back onto the shelf or cancelling does not bump hitCount.
+    if (loadSettings().movePastedToTop !== false && getStore().get(req.id)) {
+      getStore().touch(req.id)
+    }
+    // 'usage' reason: this push is bookkeeping from a manual drag-out, so
+    // the renderer must NOT flash the capture copy-indicator for it.
+    pushState.items({ reason: 'usage' })
+  }
 }
 
 /**

@@ -82,7 +82,29 @@ describe('main: a drag from another app (externalDrag.ts)', () => {
 
   it('drag-outs from the shelf are bracketed, also when startDrag throws', () => {
     const ipc = read('electron/main/ipc.ts')
-    expect(ipc).toMatch(/setOwnDragActive\(true\)\n    let dragStarted: boolean\n    try \{\n      dragStarted = startDragOut\(sender, data, capturedAt, subIndex\)\n    \} finally \{\n      setOwnDragActive\(false\)\n    \}/)
+    // A throw from startDrag still clears the bracket.
+    expect(ipc).toMatch(/setOwnDragActive\(true\)\n    let dragStarted: boolean\n    try \{\n      dragStarted = startDragOut\(sender, data, capturedAt, subIndex\)\n    \} catch \(err\) \{\n      setOwnDragActive\(false\)\n      throw err\n    \}/)
+    // Windows: startDrag returned at the drop, so the bracket closes right away.
+    expect(ipc).toMatch(/setOwnDragActive\(false\)\n    finishDragOut\(sender, req, dragStarted, isWholeItemDrag\)/)
+  })
+
+  it('macOS drag-outs end at the drop (mouse up), not when startDrag returns', () => {
+    const ipc = read('electron/main/ipc.ts')
+    // startDrag returns at once on macOS: drag-end and the drop-back check wait for the button.
+    expect(ipc).toContain("if (process.platform === 'darwin' && dragStarted) {")
+    expect(ipc).toContain('if (macPressedMouseButtons() !== 0 && Date.now() - startedAt < MAC_DRAG_MAX_MS) return')
+    // The bracket stays up for the whole macOS drag, then closes before the end-of-drag work.
+    expect(ipc).toMatch(/clearInterval\(waitForDrop\)\n        setOwnDragActive\(false\)\n        finishDragOut\(sender, req, dragStarted, isWholeItemDrag\)/)
+  })
+
+  it('macOS sees drags from other apps through the drag pasteboard', () => {
+    const ext = read('electron/main/externalDrag.ts')
+    expect(ext).toContain("if (process.platform === 'darwin') {")
+    // Buttons up re-arm the baseline; a held button alone (no new drag payload) is not a drag.
+    expect(ext).toContain('if (macPressedMouseButtons() === 0 || macDragBaseline === null) {')
+    expect(ext).toContain('return count !== macDragBaseline')
+    // Our own drag-outs never read as incoming.
+    expect(ext).toContain('return drag && !ownDrag && now >= ownDragUntil')
   })
 })
 

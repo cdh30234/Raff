@@ -18,6 +18,7 @@
  * incoming drag.
  */
 import koffi from 'koffi'
+import { macDragPasteboardChangeCount, macPressedMouseButtons } from './macNative'
 
 type GetAsyncKeyStateFn = (vKey: number) => number
 type FindWindowFn = (className: string, windowName: null) => number | bigint
@@ -51,8 +52,33 @@ export function setOwnDragActive(active: boolean): void {
   if (!active) ownDragUntil = Date.now() + OWN_DRAG_TAIL_MS
 }
 
+/**
+ * macOS has no SysDragImage window. Every drag session writes its payload to
+ * the system drag pasteboard when it starts, so: a held button plus a drag
+ * pasteboard that changed since the buttons were last up is a drag. A held
+ * button alone (window move, text selection) leaves the pasteboard as it was.
+ */
+let macDragBaseline: number | null = null
+
+function isMacDragActive(): boolean {
+  try {
+    const count = macDragPasteboardChangeCount()
+    if (macPressedMouseButtons() === 0 || macDragBaseline === null) {
+      macDragBaseline = count
+      return false
+    }
+    return count !== macDragBaseline
+  } catch {
+    return false
+  }
+}
+
 /** True while a drag from another app is in progress anywhere on screen. */
 export function isExternalDragActive(now = Date.now()): boolean {
+  if (process.platform === 'darwin') {
+    const drag = isMacDragActive()
+    return drag && !ownDrag && now >= ownDragUntil
+  }
   if (!getAsyncKeyState || !findWindow) return false
   if (ownDrag || now < ownDragUntil) return false
   try {
