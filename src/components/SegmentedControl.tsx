@@ -72,10 +72,18 @@ export function SegmentedControl<T extends string>({
     if (item && i !== selected) onChange(item.value)
   }
 
+  // Works in both directions: in RTL the slots run right-to-left on screen.
   const slotAt = (clientX: number): number => {
     const slots = press.current?.slots ?? []
-    for (let i = 0; i < slots.length; i++) if (clientX < slots[i].r) return i
-    return slots.length - 1
+    let best = slots.length - 1
+    let bestDist = Infinity
+    for (let i = 0; i < slots.length; i++) {
+      const { l, r } = slots[i]
+      if (clientX >= l && clientX < r) return i
+      const d = Math.min(Math.abs(clientX - l), Math.abs(clientX - r))
+      if (d < bestDist) { bestDist = d; best = i }
+    }
+    return best
   }
 
   const handlePointerDown = (e: PointerEvent<HTMLButtonElement>, i: number) => {
@@ -121,8 +129,12 @@ export function SegmentedControl<T extends string>({
   const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>, i: number) => {
     const last = items.length - 1
     let next: number | null = null
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = Math.min(last, i + 1)
-    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = Math.max(0, i - 1)
+    // In RTL the next slot is on the left, so the horizontal arrows swap.
+    const rtl = trackRef.current ? getComputedStyle(trackRef.current).direction === 'rtl' : false
+    const fwd = rtl ? 'ArrowLeft' : 'ArrowRight'
+    const back = rtl ? 'ArrowRight' : 'ArrowLeft'
+    if (e.key === fwd || e.key === 'ArrowDown') next = Math.min(last, i + 1)
+    else if (e.key === back || e.key === 'ArrowUp') next = Math.max(0, i - 1)
     else if (e.key === 'Home') next = 0
     else if (e.key === 'End') next = last
     if (next === null) return

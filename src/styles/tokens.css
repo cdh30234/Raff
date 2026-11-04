@@ -45,7 +45,7 @@
   --dur-base: 240ms;
 
   /* Typography — bundled OFL faces, not system fallbacks. */
-  --font-ui: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+  --font-ui: 'Plus Jakarta Sans', 'IBM Plex Sans Arabic', system-ui, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'Cascadia Mono', ui-monospace, monospace;
 
   /* Typography scale */

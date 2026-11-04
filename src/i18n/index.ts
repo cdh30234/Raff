@@ -163,6 +163,8 @@ export function useTranslation() {
   if (g.document && g.document.documentElement) {
     const isRtl = resolvedLang === 'ar' || resolvedLang === 'fa' || resolvedLang === 'he'
     g.document.documentElement.dir = isRtl ? 'rtl' : 'ltr'
+    // lang drives font fallback and Arabic shaping, and lets CSS target :lang(ar).
+    g.document.documentElement.lang = resolvedLang
   }
 
   return {

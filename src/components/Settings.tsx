@@ -1102,7 +1102,8 @@ export function Settings({
               title: t('position.edgePlacementTitle'),
               desc: t('position.edgePlacementDesc'),
               below: (
-                <div className={`placement-3way-wrap${isHorizontal ? ' shelf-placement-3way' : ''}`}>
+                // Screen sides, not reading order: Left stays on the left in RTL too.
+                <div className={`placement-3way-wrap${isHorizontal ? ' shelf-placement-3way' : ''}`} dir="ltr">
                   {placementPill('left', t('position.left') || 'Left')}
                   {placementPill('top', t('position.top') || 'Top')}
                   {placementPill('right', t('position.right') || 'Right')}
@@ -1116,7 +1117,8 @@ export function Settings({
               trailing: <span className="set-row-badge">{`${Math.round(offsetVal * 100)}%`}</span>,
               size: 'slider',
               below: (
-                <div className="setting-slider-wrap">
+                // Horizontal offset runs from the screen's left edge, so it never mirrors in RTL.
+                <div className="setting-slider-wrap" dir={offsetIsHorizontal ? 'ltr' : undefined}>
                   <WakeSlider
                     ariaLabel={offsetIsHorizontal ? (t('position.horizontalPositionTitle') || 'Horizontal Position') : t('position.verticalPositionTitle')}
                     min={0}
@@ -1239,7 +1241,10 @@ export function Settings({
               id: 'trigger-position',
               title: t('position.edgeTriggerPositionTitle'),
               desc: t('position.edgeTriggerPositionDesc'),
-              below: pills<'top' | 'center' | 'bottom'>(
+              below: (
+                // Left / Center / Right are screen sides: keep them in screen order in RTL.
+                <div dir={offsetIsHorizontal ? 'ltr' : undefined} style={{ display: 'contents' }}>
+                {pills<'top' | 'center' | 'bottom'>(
                 [
                   { label: offsetIsHorizontal ? (t('position.left') || 'Left') : t('position.top'), val: 'top' },
                   { label: t('position.center'), val: 'center' },
@@ -1250,6 +1255,8 @@ export function Settings({
                   patch({ triggerAlignment: v })
                   useStore.getState().notifyPositionChanged()
                 }
+                )}
+                </div>
               )
             } satisfies RowSpec] : []),
             {

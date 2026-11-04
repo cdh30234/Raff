@@ -28,9 +28,12 @@ describe('filter bar (SegmentedControl)', () => {
   it('places the thumb by pure CSS geometry from the selected index', () => {
     expect(tsx).toContain("'--i': shown")
     expect(css).toContain('grid-auto-columns: var(--seg-slot);')
-    expect(css).toContain('translate: calc(var(--i) * var(--seg-slot)) 0;')
+    expect(css).toContain('translate: calc(var(--i) * var(--seg-slot) * var(--seg-dir)) 0;')
     // The black icon copy moves the opposite way with the same spring, so it stays on the slots.
-    expect(css).toContain('translate: calc(var(--i) * var(--seg-slot) * -1) 0;')
+    expect(css).toContain('translate: calc(var(--i) * var(--seg-slot) * var(--seg-dir) * -1) 0;')
+    // Right-to-left (Arabic, Persian, Hebrew): slots run from the right, so the thumb moves left.
+    expect(css).toContain('--seg-dir: 1;')
+    expect(css).toMatch(/\[dir='rtl'\] \.seg \{\s*--seg-dir: -1;/)
     expect(css.match(/translate var\(--seg-motion\)/g)?.length).toBe(2)
   })
 

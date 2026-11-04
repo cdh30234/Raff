@@ -5,6 +5,8 @@
   --seg-slot: 26px;
   --seg-h: 30px;
   --seg-pad: 2px;
+  /* +1 left-to-right, -1 right-to-left: slots run from the inline start, so the thumb moves that way. */
+  --seg-dir: 1;
   /* Spring: response 0.28s, damping 0.86, ends where it first reaches the slot. */
   --seg-motion: 228ms linear(0, 0.006 2.3%, 0.026 4.8%, 0.059 7.5%, 0.11 10.8%, 0.195 15.3%, 0.455 28%, 0.561 33.8%, 0.648 39%, 0.722 44.3%, 0.785 49.5%, 0.84 55%, 0.886 61%, 0.925 67.5%, 0.956 74.8%, 0.979 83.3%, 0.995 94%, 1);
 
@@ -58,7 +60,7 @@
 .seg__thumb {
   position: absolute;
   top: var(--seg-pad);
-  left: var(--seg-pad);
+  inset-inline-start: var(--seg-pad);
   width: var(--seg-slot);
   height: calc(var(--seg-h) - var(--seg-pad) * 2);
   border-radius: 999px;
@@ -66,7 +68,7 @@
   overflow: hidden;
   pointer-events: none;
   /* translate (not transform) so the press scale stays centred on the slot. */
-  translate: calc(var(--i) * var(--seg-slot)) 0;
+  translate: calc(var(--i) * var(--seg-slot) * var(--seg-dir)) 0;
   transition:
     translate var(--seg-motion),
     opacity 160ms ease,
@@ -77,14 +79,18 @@
 .seg__ink {
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   height: 100%;
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: var(--seg-slot);
   color: #000000;
-  translate: calc(var(--i) * var(--seg-slot) * -1) 0;
+  translate: calc(var(--i) * var(--seg-slot) * var(--seg-dir) * -1) 0;
   transition: translate var(--seg-motion);
+}
+
+[dir='rtl'] .seg {
+  --seg-dir: -1;
 }
 
 .seg__slot {

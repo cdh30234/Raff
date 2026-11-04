@@ -7,6 +7,12 @@ import '@fontsource/plus-jakarta-sans/400.css'
 import '@fontsource/plus-jakarta-sans/500.css'
 import '@fontsource/plus-jakarta-sans/600.css'
 import '@fontsource/plus-jakarta-sans/700.css'
+// Arabic letters (Arabic, Persian UI): Plus Jakarta Sans has none. Only the Arabic subset is
+// imported, so Latin text keeps Plus Jakarta Sans.
+import '@fontsource/ibm-plex-sans-arabic/arabic-400.css'
+import '@fontsource/ibm-plex-sans-arabic/arabic-500.css'
+import '@fontsource/ibm-plex-sans-arabic/arabic-600.css'
+import '@fontsource/ibm-plex-sans-arabic/arabic-700.css'
 import '@fontsource/jetbrains-mono/400.css'
 import '@fontsource/jetbrains-mono/500.css'
 
@@ -17,6 +23,8 @@ import './styles/panel.css'
 import './styles/item.css'
 import './styles/settings.css'
 import './styles/emoji.css'
+// Last: right-to-left fixes for Arabic / Persian / Hebrew (layers on top of the component styles).
+import './styles/rtl.css'
 
 const container = document.getElementById('root')
 if (!container) throw new Error('#root element not found')

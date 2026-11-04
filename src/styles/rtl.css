@@ -1,0 +1,63 @@
+/* ---- rtl.css ----
+   Right-to-left interface (Arabic, Persian, Hebrew). useTranslation() sets
+   <html dir="rtl">; the layout mirrors through logical properties and the
+   rules below. What the user copied keeps its own direction: an English
+   sentence, code or a URL never flips just because the interface is RTL. */
+
+/* Copied text: each paragraph takes the direction of its first strong letter,
+   so Arabic reads right-to-left and English left-to-right in the same shelf. */
+.preview,
+.pf-text,
+.link-card-body,
+.pf-link-title,
+.pf-link-sub {
+  unicode-bidi: plaintext;
+  text-align: start;
+}
+
+/* Code is always left-to-right, in the card and in the preview flyout. */
+.code-block-container,
+.code-card-preview {
+  direction: ltr;
+  text-align: left;
+}
+
+/* URLs, hex colours and file names read left-to-right; in an RTL interface they
+   still sit on the right edge, and a long one is cut at its end, not its start. */
+[dir='rtl'] .link-card-url,
+[dir='rtl'] .flyout-url,
+[dir='rtl'] .color-swatch-code {
+  direction: ltr;
+  text-align: right;
+}
+
+[dir='rtl'] .link-card-domain,
+[dir='rtl'] .file-name-meta,
+[dir='rtl'] .single-file-name {
+  unicode-bidi: plaintext;
+}
+
+/* Arabic script is joined: tracking pulls the letters of a word apart. */
+:lang(ar),
+:lang(fa) {
+  letter-spacing: normal !important;
+}
+
+/* Switches mirror in RTL (as in macOS / iOS): "on" puts the knob on the left. */
+[dir='rtl'] .setting-toggle {
+  transform: scaleX(-1);
+}
+
+/* Screen resolution "1920×1080" stays in that order inside Arabic text. */
+.pill-res {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* "Go forward" chevrons point the way the interface reads. */
+[dir='rtl'] .style-preview-toggle-btn svg,
+/* A stack opens along the reading direction; "collapse" points back to its start. */
+[dir='rtl'] .horizontal-dock .bundle-collapse-hit svg,
+[dir='rtl'] .horizontal-dock .image-folder-collapse-btn svg {
+  transform: scaleX(-1);
+}
