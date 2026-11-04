@@ -103,7 +103,7 @@ describe('GitHub Run-key health (quoted, current path, --hidden)', () => {
   })
 })
 
-describe('raw registry read (reg query)', () => {
+describe.skipIf(process.platform !== 'win32')('raw registry read (reg query)', () => {
   beforeEach(() => {
     delete process.env.APP_BUILD_TARGET
     mocks.isPackaged = true
@@ -149,7 +149,7 @@ describe('raw registry read (reg query)', () => {
   })
 })
 
-describe('reconcile never silently loses ON after update', () => {
+describe.skipIf(process.platform !== 'win32')('reconcile never silently loses ON after update', () => {
   beforeEach(() => {
     delete process.env.APP_BUILD_TARGET
     mocks.isPackaged = true

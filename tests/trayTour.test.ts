@@ -11,7 +11,13 @@ vi.mock('node:child_process', async (importOriginal) => ({
 }))
 
 vi.mock('electron', () => {
-  const image = { resize: vi.fn().mockReturnThis() }
+  const image = {
+    resize: vi.fn().mockReturnThis(),
+    // macOS menu-bar template icon path
+    toPNG: vi.fn().mockReturnValue(Buffer.alloc(0)),
+    addRepresentation: vi.fn(),
+    setTemplateImage: vi.fn()
+  }
   return {
     app: {
       getAppPath: vi.fn().mockReturnValue(process.cwd()),
@@ -20,7 +26,7 @@ vi.mock('electron', () => {
       quit: vi.fn()
     },
     nativeTheme: { shouldUseDarkColors: true, on: vi.fn() },
-    nativeImage: { createFromPath: vi.fn().mockReturnValue(image), createFromBuffer: vi.fn().mockReturnValue(image) },
+    nativeImage: { createFromPath: vi.fn().mockReturnValue(image), createFromBuffer: vi.fn().mockReturnValue(image), createEmpty: vi.fn().mockReturnValue(image) },
     Tray: class {
       setImage = vi.fn(); setToolTip = vi.fn(); setContextMenu = vi.fn(); on = vi.fn(); isDestroyed = () => false
     },

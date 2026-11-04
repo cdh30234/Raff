@@ -154,7 +154,7 @@ describe('Store vs exe filesystem interop', () => {
     })
   })
 
-  describe('toUnpackagedFilePath — Store copies package-private files', () => {
+  describe.skipIf(process.platform !== 'win32')('toUnpackagedFilePath — Store copies package-private files', () => {
     beforeEach(() => {
       process.env.APP_BUILD_TARGET = 'store'
     })

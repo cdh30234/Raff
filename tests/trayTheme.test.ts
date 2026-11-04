@@ -61,7 +61,7 @@ import { PATHS } from '../electron/store/paths'
 import { isTaskbarLightTheme, getTrayImage } from '../electron/main/tray'
 import { nativeTheme } from 'electron'
 
-describe('Tray Icon Theme Adaptation (Issue #64)', () => {
+describe.skipIf(process.platform !== 'win32')('Tray Icon Theme Adaptation (Issue #64)', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
   })

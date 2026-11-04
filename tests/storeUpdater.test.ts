@@ -97,7 +97,7 @@ describe('auto-updater isolation', () => {
     })
   })
 
-  describe('GitHub exe build', () => {
+  describe.skipIf(process.platform !== 'win32')('GitHub exe build', () => {
     it('checkForUpdatesManual reports available when GitHub latest is newer', async () => {
       mockGithubRelease('v0.3.2')
       const result = await checkForUpdatesManual()

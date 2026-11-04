@@ -64,7 +64,8 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
 
   it('ships the windowless StartupTask helper outside the asar', () => {
     expect(pkg.build.files).toEqual(expect.arrayContaining(['!resources/startup/**/*.exe']))
-    expect(pkg.build.extraResources).toEqual(expect.arrayContaining([
+    // Windows-only resource: lives under build.win so the macOS app does not ship the .exe.
+    expect(pkg.build.win.extraResources).toEqual(expect.arrayContaining([
       { from: 'resources/startup/EdgeDropStartup.exe', to: 'startup/EdgeDropStartup.exe' }
     ]))
     expect(existsSync(join(root, 'resources/startup/EdgeDropStartup.exe'))).toBe(true)
