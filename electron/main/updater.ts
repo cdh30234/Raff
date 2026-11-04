@@ -1,9 +1,9 @@
 import { app, net } from 'electron'
-import { isStoreBuild as isStoreBuildRaw } from './config'
-
-/** Store builds and the unofficial macOS port have no update feed. */
-const isStoreBuild = (): boolean => isStoreBuildRaw() || process.platform === 'darwin'
+import { isStoreBuild, runtime } from './config'
 import { pushState } from './state'
+import { mainT } from './i18n'
+import { BRAND } from '../../shared/brand'
+import { alreadyNotified, downloadRelease, fetchLatestRelease, installAndRelaunch, isNewer, notifyUpdate, openReleasePage, rememberNotified, type MacRelease } from './macUpdater'
 import { getSettings } from '../store/settings'
 import { resolveUpdateMode } from '../../shared/types'
 
@@ -27,11 +27,100 @@ export function clearCachedUpdateState(): void {
   _cachedUpdateInfo = null
 }
 
+/* ------------------------------------------------------------------ */
+/* macOS: GitHub releases of BRAND.repo (see macUpdater.ts)            */
+/* ------------------------------------------------------------------ */
+
+const IS_MAC = process.platform === 'darwin'
+/** Look again this often while the app keeps running (it lives in the menu bar for days). */
+const MAC_RECHECK_MS = 6 * 60 * 60 * 1000
+
+let macRelease: MacRelease | null = null
+let macZip: string | null = null
+let macDownloading = false
+let macTimer: ReturnType<typeof setInterval> | null = null
+
+/** Check the release feed; on a newer version surface it (prompt + one notification) and, in 'auto' mode, download it. */
+async function macCheck(source: 'background' | 'manual'): Promise<{ status: string; version?: string; error?: string }> {
+  const current = app.getVersion()
+  const release = await fetchLatestRelease()
+  if (!release) return { status: source === 'manual' ? 'error' : 'up-to-date', error: 'Could not reach the update server' }
+  if (!isNewer(release.version, current)) return { status: 'up-to-date', version: current }
+
+  macRelease = release
+  if (!_cachedUpdateInfo || _cachedUpdateInfo.latestVersion !== release.version) {
+    _cachedUpdateInfo = { hasUpdate: true, latestVersion: release.version, downloaded: false }
+  }
+  pushState.updateAvailable({ version: release.version })
+
+  if (source === 'background' && !alreadyNotified(release.version)) {
+    rememberNotified(release.version)
+    notifyUpdate(
+      mainT('behaviour.updateAvailableTitle', { version: release.version }),
+      mainT('behaviour.updateAvailableDesc'),
+      () => pushState.openSettings()
+    )
+  }
+  if (source === 'background' && resolveUpdateMode(getSettings()) === 'auto') void macDownload()
+  return { status: 'available', version: release.version }
+}
+
+async function macDownload(): Promise<void> {
+  if (macDownloading || macZip) return
+  if (!macRelease) await macCheck('manual')
+  const release = macRelease
+  if (!release) return
+  macDownloading = true
+  try {
+    macZip = await downloadRelease(release, (p) => {
+      if (_cachedUpdateInfo) _cachedUpdateInfo.downloadProgress = p
+      pushState.updateProgress(p)
+    })
+    _cachedUpdateInfo = { hasUpdate: true, latestVersion: release.version, downloaded: true }
+    pushState.updateDownloaded({ version: release.version })
+  } catch (err) {
+    console.warn('[MacUpdater] download failed, opening the release page:', err)
+    openReleasePage(release)
+  } finally {
+    macDownloading = false
+  }
+}
+
+function macInstall(): void {
+  if (!macZip) {
+    openReleasePage(macRelease)
+    return
+  }
+  let started = false
+  try {
+    started = installAndRelaunch(macZip)
+  } catch (err) {
+    console.error('[MacUpdater] install failed:', err)
+  }
+  if (!started) {
+    openReleasePage(macRelease)
+    return
+  }
+  runtime.quitting = true
+  app.quit()
+}
+
+function macStartChecks(): void {
+  if (macTimer) clearInterval(macTimer)
+  macTimer = null
+  if (resolveUpdateMode(getSettings()) === 'off') return
+  setTimeout(() => void macCheck('background'), 3000)
+  macTimer = setInterval(() => {
+    if (resolveUpdateMode(getSettings()) !== 'off') void macCheck('background')
+  }, MAC_RECHECK_MS)
+}
+
 /**
  * Called from ipc.ts when the renderer clicks "Restart to Update".
  */
 export function quitAndInstallUpdate(): void {
   if (isStoreBuild()) return
+  if (IS_MAC) return macInstall()
   if (!_autoUpdater) {
     console.error('[AutoUpdater] quitAndInstall requested but autoUpdater is not initialized.')
     return
@@ -49,6 +138,7 @@ export function quitAndInstallUpdate(): void {
  * Only 'auto' mode downloads; 'notify' checks without downloading.
  */
 export function syncAutoUpdaterState(): void {
+  if (IS_MAC) return macStartChecks()
   if (isStoreBuild() || !_autoUpdater) return
   const mode = resolveUpdateMode(getSettings())
   const autoDownload = mode === 'auto'
@@ -68,6 +158,10 @@ let bgCheckTimer: ReturnType<typeof setTimeout> | null = null
  */
 export function triggerBackgroundCheck(delayMs = 3000): void {
   if (isStoreBuild()) return
+  if (IS_MAC) {
+    if (resolveUpdateMode(getSettings()) !== 'off') setTimeout(() => void macCheck('background'), Math.max(0, delayMs))
+    return
+  }
   if (bgCheckTimer !== null) {
     clearTimeout(bgCheckTimer)
     bgCheckTimer = null
@@ -117,9 +211,9 @@ function checkGitHubReleaseFast(): Promise<{ tag_name?: string } | null> {
     try {
       const request = net.request({
         method: 'GET',
-        url: 'https://api.github.com/repos/Deepender25/Edge-Drop/releases/latest'
+        url: `https://api.github.com/repos/${BRAND.repo}/releases/latest`
       })
-      request.setHeader('User-Agent', 'Edge-Drop-App')
+      request.setHeader('User-Agent', `${BRAND.name}-App`)
       request.setHeader('Accept', 'application/vnd.github.v3+json')
 
       const timer = setTimeout(() => {
@@ -163,6 +257,7 @@ export async function checkForUpdatesManual(): Promise<{ status: string; version
   if (isStoreBuild()) {
     return { status: 'up-to-date', version: app.getVersion() }
   }
+  if (IS_MAC) return macCheck('manual')
 
   // Ensure autoUpdater reference is initialized for subsequent download calls
   if (!_autoUpdater) {
@@ -224,6 +319,7 @@ export async function checkForUpdatesManual(): Promise<{ status: string; version
  */
 export async function startUpdateDownload(): Promise<void> {
   if (isStoreBuild()) return
+  if (IS_MAC) return macDownload()
   if (!_autoUpdater) {
     try {
       const { autoUpdater } = require('electron-updater')
@@ -259,6 +355,11 @@ export async function startUpdateDownload(): Promise<void> {
 export function initAutoUpdater(): void {
   if (isStoreBuild()) {
     console.log('[AutoUpdater] Store build detected — auto-updater disabled.')
+    return
+  }
+  if (IS_MAC) {
+    console.log(`[MacUpdater] Checking ${BRAND.repo} releases (current v${app.getVersion()}).`)
+    macStartChecks()
     return
   }
 
