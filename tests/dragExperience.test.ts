@@ -97,11 +97,23 @@ describe('main: a drag from another app (externalDrag.ts)', () => {
     expect(ipc).toMatch(/clearInterval\(waitForDrop\)\n        setOwnDragActive\(false\)\n        finishDragOut\(sender, req, dragStarted, isWholeItemDrag\)/)
   })
 
-  it('macOS keeps the shelf below the drag-image layer so drops reach it', () => {
+  it('macOS: the shelf stays on the top layer, and drops below the drag layer only during a drag', () => {
     const win = read('electron/main/window.ts')
-    // macOS never offers a drop to a window above the drag layer (500); 'screen-saver' is 1000.
-    expect(win).toContain("const TOP_LEVEL = process.platform === 'darwin' ? 'pop-up-menu' : 'screen-saver'")
-    expect(win).not.toContain("setAlwaysOnTop(true, 'screen-saver')")
+    // Above every app and the menu bar's menus...
+    expect(win).toContain("const TOP_LEVEL = 'screen-saver'")
+    // ...except while a drag from another app is on: macOS never offers a drop to a
+    // window above the drag-image layer (500), and 'screen-saver' is 1000.
+    expect(win).toContain("const MAC_DROP_LEVEL = 'pop-up-menu'")
+    expect(win).toContain("return process.platform === 'darwin' && macDropLevel ? MAC_DROP_LEVEL : TOP_LEVEL")
+    // Every level change goes through topLevel(), so nothing re-asserts the wrong one mid-drag.
+    expect(win).not.toMatch(/setAlwaysOnTop\(true, '(screen-saver|pop-up-menu)'\)/)
+    expect(win).not.toContain('setAlwaysOnTop(true, TOP_LEVEL)')
+    // The cursor poll follows the drag on every tick, before the full-screen and
+    // edge checks that end a tick early.
+    const tick = win.slice(win.indexOf('function _pollTick'))
+    expect(tick.indexOf('setMacDropLevel(drag)')).toBeGreaterThan(0)
+    expect(tick.indexOf('setMacDropLevel(drag)')).toBeLessThan(tick.indexOf('isFullscreenAppActive()'))
+    expect(tick.indexOf('setMacDropLevel(drag)')).toBeLessThan(tick.indexOf('if (!wa) return'))
   })
 
   it('macOS sees drags from other apps through the drag pasteboard', () => {
