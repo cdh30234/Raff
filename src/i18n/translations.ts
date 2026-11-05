@@ -16,7 +16,7 @@ export interface TranslationKeys {
   tools?: {
     open: string
     done: string
-    theme: { title: string; desc: string; black: string; glassDark: string; glass: string }
+    theme: { title: string; desc: string; black: string; glassDark: string; liquid: string; glass: string }
     nav: { home: string; clipboard: string; tools: string }
     weather: {
       now: string
@@ -847,10 +847,11 @@ export const en: TranslationKeys = {
     "done": "Done",
     "theme": {
       "title": "Theme",
-      "desc": "The shelf's surface: solid black, or frosted glass over your wallpaper.",
+      "desc": "The shelf's surface: solid black, or Liquid Glass over your wallpaper — black to glass, in its colours, or clear.",
       "black": "Black",
       "glassDark": "Glass + black",
-      "glass": "Glass"
+      "liquid": "Colour glass",
+      "glass": "Clear glass"
     },
     "nav": {
       "home": "Home",
@@ -8429,10 +8430,11 @@ export const ar: TranslationKeys = {
     "done": "تم",
     "theme": {
       "title": "المظهر",
-      "desc": "سطح الرف: أسود كامل، أو زجاج شفاف فوق خلفية سطح مكتبك.",
+      "desc": "سطح الرف: أسود كامل، أو زجاج سائل فوق خلفية سطح مكتبك — من الأسود إلى الزجاج، أو بألوان الخلفية، أو شفاف.",
       "black": "أسود",
       "glassDark": "زجاج وأسود",
-      "glass": "زجاج"
+      "liquid": "زجاج ملوّن",
+      "glass": "زجاج شفاف"
     },
     "nav": {
       "home": "الرئيسية",

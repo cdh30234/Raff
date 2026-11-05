@@ -3,6 +3,16 @@ import { readClipboard, clipboardSignature } from '../electron/clipboard/formats
 import * as clipboard from '../electron/clipboard/osClipboard'
 
 // Mock the system clipboard
+// Keep the Mac's real pasteboard out of these tests (whatever is copied
+// right now, e.g. a file, would otherwise leak into readClipboard).
+vi.mock('../electron/main/macNative', () => ({
+  macReadFileUrls: () => null,
+  macPasteboardChangeCount: () => 0,
+  macPasteboardTypes: () => [],
+  macPasteboardString: () => null,
+  macPasteboardData: () => null
+}))
+
 vi.mock('../electron/clipboard/osClipboard', () => {
   let mockFormats: string[] = []
   let mockText = ''

@@ -40,10 +40,6 @@
   overflow: hidden;
   box-sizing: border-box;
 }
-.blade-container.theme-glass .home-card,
-.blade-container.theme-glass-dark .home-card {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
-}
 .home-card-label { color: var(--text-tertiary); font-size: calc(11px * var(--font-scale, 1)); font-weight: 600; }
 
 .home-pill {

@@ -38,8 +38,8 @@ describe('Home stays light', () => {
 })
 
 describe('shelf themes', () => {
-  it('black, glass-dark and glass; unknown values fall back to black', () => {
-    expect(read('shared/types.ts')).toContain("export const SHELF_THEMES: ShelfTheme[] = ['black', 'glass-dark', 'glass']")
+  it('black plus three glass themes; unknown values fall back to black', () => {
+    expect(read('shared/types.ts')).toContain("export const SHELF_THEMES: ShelfTheme[] = ['black', 'glass-dark', 'liquid', 'glass']")
     expect(read('electron/store/settings.ts')).toContain("if (out.theme !== undefined && !SHELF_THEMES.includes(out.theme)) {")
   })
 
@@ -48,5 +48,21 @@ describe('shelf themes', () => {
     expect(wall).toContain('nativeImage.createThumbnailFromPath(path')
     // Fetched by the hook when a glass theme is on and the shelf opens; nothing for black.
     expect(read('src/hooks/useGlassTheme.ts')).toContain("if (!blade || theme === 'black' || !open) return")
+  })
+})
+
+describe('Liquid Glass themes', () => {
+  const read = (p: string) => require('node:fs').readFileSync(require('node:path').join(__dirname, '..', p), 'utf8') as string
+  it('offers black plus three glass looks, each styled', async () => {
+    const { SHELF_THEMES } = await import('../shared/types')
+    expect(SHELF_THEMES).toEqual(['black', 'glass-dark', 'liquid', 'glass'])
+    const css = read('src/styles/themes.css')
+    for (const th of ['glass-dark', 'liquid', 'glass']) {
+      expect(css, th).toContain(`.blade-container.theme-${th} .blade::before`)
+      expect(css, th).toContain(`.blade-container.theme-${th} .blade::after`)
+    }
+    expect(css).toContain('backdrop-filter')
+    expect(css).toContain('prefers-reduced-transparency')
+    expect(read('src/components/Settings.tsx')).toContain("val: 'liquid'")
   })
 })

@@ -1347,6 +1347,7 @@ export function Settings({
               [
                 { label: t('tools.theme.black'), val: 'black' },
                 { label: t('tools.theme.glassDark'), val: 'glass-dark' },
+                { label: t('tools.theme.liquid'), val: 'liquid' },
                 { label: t('tools.theme.glass'), val: 'glass' }
               ],
               (v) => (settings.theme ?? 'black') === v,

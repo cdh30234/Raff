@@ -1,22 +1,37 @@
 /* ---- themes.css ----
-   Raff's shelf surfaces. 'black' is the original solid blade. The glass themes
-   draw the wallpaper (useGlassTheme sets --glass-image / -size / -pos) blurred
-   under the blade's content, then a tint on top of it:
-     glass-dark  — the wallpaper's colour under deep black: calm and readable
-     glass       — lighter, more of the wallpaper shows through
-   Both layers are pseudo-elements in the blade's own stacking context
-   (isolation), so no content element needs to change. */
+   Raff's shelf surfaces, in the spirit of Apple's Liquid Glass.
 
-.blade-container.theme-glass .blade,
-.blade-container.theme-glass-dark .blade {
+     black       the original solid blade
+     glass-dark  black at the top that dissolves into glass at the bottom
+     liquid      rich glass in the wallpaper's own colours
+     glass       clear glass, the wallpaper bright behind it
+
+   Glass is drawn, not native (Electron's vibrancy blurs the whole window
+   rectangle): useGlassTheme puts the wallpaper (--glass-image/-size/-pos)
+   behind the blade, blurred and slightly magnified like a lens, with the
+   theme's tint over it. Cards frost what is behind them (backdrop-filter),
+   and every glass surface gets a specular rim: light on its upper edge,
+   a fainter return on the lower one. All static — nothing animates — and
+   none of it exists while the shelf is closed. */
+
+.blade-container.theme-glass-dark .blade,
+.blade-container.theme-liquid .blade,
+.blade-container.theme-glass .blade {
   background: transparent;
   isolation: isolate;
   overflow: hidden;
+  /* Specular rim of the shelf itself. */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07);
 }
 
-/* The blurred wallpaper, overhanging the blade (GLASS_BLEED_PX) so the blur has no faded rim. */
-.blade-container.theme-glass .blade::before,
-.blade-container.theme-glass-dark .blade::before {
+/* The wallpaper, blurred and magnified a touch (the lens), overhanging the
+   blade (GLASS_BLEED_PX) so the blur has no faded rim. */
+.blade-container.theme-glass-dark .blade::before,
+.blade-container.theme-liquid .blade::before,
+.blade-container.theme-glass .blade::before {
   content: '';
   position: absolute;
   inset: -48px;
@@ -26,13 +41,17 @@
   background-size: var(--glass-size, cover);
   background-position: var(--glass-pos, center);
   background-repeat: no-repeat;
-  filter: blur(34px) saturate(1.5);
+  transform: scale(1.04);
   pointer-events: none;
 }
+.blade-container.theme-glass-dark .blade::before { filter: blur(30px) saturate(1.4); }
+.blade-container.theme-liquid .blade::before { filter: blur(26px) saturate(1.9) brightness(0.9); }
+.blade-container.theme-glass .blade::before { filter: blur(20px) saturate(1.6) brightness(1.05); }
 
-/* The tint, and a hairline of light along the edge like real glass. */
-.blade-container.theme-glass .blade::after,
-.blade-container.theme-glass-dark .blade::after {
+/* The tint over the glass. */
+.blade-container.theme-glass-dark .blade::after,
+.blade-container.theme-liquid .blade::after,
+.blade-container.theme-glass .blade::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -40,41 +59,86 @@
   border-radius: inherit;
   pointer-events: none;
 }
+/* Black that lets the glass through along the bottom edge. */
 .blade-container.theme-glass-dark .blade::after {
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.74), rgba(0, 0, 0, 0.84));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  background: linear-gradient(180deg, #000 0%, #000 52%, rgba(0, 0, 0, 0.55) 82%, rgba(0, 0, 0, 0.2) 100%);
 }
+.blade-container.theme-glass-dark.horizontal-dock .blade::after {
+  background: linear-gradient(180deg, #000 0%, #000 45%, rgba(0, 0, 0, 0.5) 80%, rgba(0, 0, 0, 0.15) 100%);
+}
+/* The wallpaper's colour, deepened, with a sheen on top. */
+.blade-container.theme-liquid .blade::after {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 40%),
+    linear-gradient(180deg, rgba(10, 6, 24, 0.38), rgba(0, 0, 0, 0.5));
+}
+/* Barely tinted: the wallpaper reads clearly through. */
 .blade-container.theme-glass .blade::after {
-  background: linear-gradient(180deg, rgba(18, 18, 24, 0.34), rgba(10, 10, 14, 0.5));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 35%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.18));
 }
 
 /* The black connector curves belong to the solid blade only. */
-.blade-container.theme-glass .flare-top,
-.blade-container.theme-glass .flare-bottom,
-.blade-container.theme-glass .flare-horizontal,
-.blade-container.theme-glass-dark .flare-top,
-.blade-container.theme-glass-dark .flare-bottom,
-.blade-container.theme-glass-dark .flare-horizontal {
+.blade-container:is(.theme-glass-dark, .theme-liquid, .theme-glass) :is(.flare-top, .flare-bottom, .flare-horizontal) {
   display: none;
 }
 
-/* Surfaces inside the blade turn translucent, so the glass carries through. */
+/* ── frosted, rimmed cards ─────────────────────────────────────────── */
 .blade-container.theme-glass-dark {
-  --bg-card: rgba(255, 255, 255, 0.06);
-  --bg-card-hover: rgba(255, 255, 255, 0.1);
-  --bg-chip: rgba(255, 255, 255, 0.06);
-  --bg-2: rgba(255, 255, 255, 0.06);
-  --bg-3: rgba(255, 255, 255, 0.1);
+  --bg-card: rgba(255, 255, 255, 0.07);
+  --bg-card-hover: rgba(255, 255, 255, 0.11);
+  --bg-chip: rgba(255, 255, 255, 0.07);
+  --bg-2: rgba(255, 255, 255, 0.07);
+  --bg-3: rgba(255, 255, 255, 0.11);
   --act-surface: rgba(255, 255, 255, 0.12);
   --act-surface-hover: rgba(255, 255, 255, 0.18);
 }
+.blade-container.theme-liquid {
+  --bg-card: rgba(255, 255, 255, 0.13);
+  --bg-card-hover: rgba(255, 255, 255, 0.18);
+  --bg-chip: rgba(255, 255, 255, 0.13);
+  --bg-2: rgba(255, 255, 255, 0.13);
+  --bg-3: rgba(255, 255, 255, 0.17);
+  --act-surface: rgba(255, 255, 255, 0.2);
+  --act-surface-hover: rgba(255, 255, 255, 0.26);
+}
 .blade-container.theme-glass {
-  --bg-card: rgba(255, 255, 255, 0.12);
-  --bg-card-hover: rgba(255, 255, 255, 0.17);
-  --bg-chip: rgba(255, 255, 255, 0.12);
-  --bg-2: rgba(255, 255, 255, 0.12);
+  /* On clear glass the cards are the darker layer, so text stays readable. */
+  --bg-card: rgba(0, 0, 0, 0.26);
+  --bg-card-hover: rgba(0, 0, 0, 0.34);
+  --bg-chip: rgba(0, 0, 0, 0.26);
+  --bg-2: rgba(0, 0, 0, 0.26);
   --bg-3: rgba(255, 255, 255, 0.16);
-  --act-surface: rgba(255, 255, 255, 0.18);
-  --act-surface-hover: rgba(255, 255, 255, 0.24);
+  --act-surface: rgba(0, 0, 0, 0.3);
+  --act-surface-hover: rgba(0, 0, 0, 0.4);
+}
+
+.blade-container:is(.theme-glass-dark, .theme-liquid, .theme-glass) :is(.home-card, .item-main, .search) {
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+}
+/* Black + glass: the cards stay calm and dark like the blade's top. */
+.blade-container.theme-glass-dark :is(.home-card, .item-main) {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Clear glass can sit over any colour: lift text off it a little. */
+.blade-container:is(.theme-liquid, .theme-glass) .home {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.blade-container:is(.theme-liquid, .theme-glass) :is(.prayer-card-date, .date-weekday) {
+  color: #ff6b62;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .blade-container:is(.theme-glass-dark, .theme-liquid, .theme-glass) .blade::before { display: none; }
+  .blade-container:is(.theme-glass-dark, .theme-liquid, .theme-glass) .blade::after { background: #0b0b0d; }
 }

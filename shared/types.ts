@@ -152,8 +152,8 @@ export interface MergeResult {
   message?: string
 }
 
-export type ShelfTheme = 'black' | 'glass-dark' | 'glass'
-export const SHELF_THEMES: ShelfTheme[] = ['black', 'glass-dark', 'glass']
+export type ShelfTheme = 'black' | 'glass-dark' | 'liquid' | 'glass'
+export const SHELF_THEMES: ShelfTheme[] = ['black', 'glass-dark', 'liquid', 'glass']
 
 export interface Settings {
   /** Fraction of the screen height the hot zone occupies (0.2 - 0.6). */
@@ -178,8 +178,9 @@ export interface Settings {
   /** UI visual style density ('modern' | 'compact'). */
   uiStyle: 'modern' | 'compact'
   /**
-   * Raff's shelf surface: 'black' (solid), 'glass-dark' (the wallpaper blurred
-   * under a dark tint) or 'glass' (the blurred wallpaper, lightly tinted).
+   * Raff's shelf surface: 'black' (solid), 'glass-dark' (black that dissolves
+   * into glass at the bottom), 'liquid' (rich glass in the wallpaper's colours)
+   * or 'glass' (clear glass).
    * Optional: absent means 'black'.
    */
   theme?: ShelfTheme
