@@ -58,7 +58,8 @@ describe('filter bar (SegmentedControl)', () => {
   it('header: filters exclude emoji, which is its own toggle; no thumb while the picker is open', () => {
     const header = read('src/components/Header.tsx')
     expect(header).not.toContain("id: 'emoji'")
-    expect(header).toContain('value={emojiOpen ? null : typeFilter}')
+    // The tools page is a separate view too: no filter thumb while it or the emoji picker is open.
+    expect(header).toContain('value={emojiOpen || toolsOpen ? null : typeFilter}')
     expect(header).toContain('className={`emoji-mode-btn${emojiOpen ? \' active\' : \'\'}`}')
     expect(header).toContain('setEmojiOpen(!emojiOpen)')
   })

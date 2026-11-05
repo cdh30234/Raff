@@ -101,6 +101,16 @@ interface AppState {
   /** Emoji library view (replaces the clipboard list). */
   emojiOpen: boolean
   setEmojiOpen: (open: boolean) => void
+  /** The tools page (focus, tasks, prayer) replaces the list while open, like the emoji picker. */
+  toolsOpen: boolean
+  setToolsOpen: (open: boolean) => void
+  /**
+   * Until this time (epoch ms) the shelf ignores "pointer is outside" closes.
+   * Set when something other than the pointer opens it (a tools notification),
+   * so it does not snap shut before the pointer gets there. 0 = no hold.
+   */
+  holdOpenUntil: number
+  setHoldOpenUntil: (until: number) => void
   emojiCategory: import('../lib/emoji/catalog').EmojiCategoryId
   setEmojiCategory: (cat: import('../lib/emoji/catalog').EmojiCategoryId) => void
   /** True while an OS file drag is hovering the panel (prevents premature close). */
@@ -252,8 +262,8 @@ export const useStore = create<AppState>((set, get) => ({
   demo: false,
   typeFilter: 'all',
   setTypeFilter: (typeFilter) => {
-    if (get().typeFilter === typeFilter && !get().emojiOpen) return
-    set({ typeFilter, emojiOpen: false, expandedStackId: null, cardMenu: null, cardMenuRect: null })
+    if (get().typeFilter === typeFilter && !get().emojiOpen && !get().toolsOpen) return
+    set({ typeFilter, emojiOpen: false, toolsOpen: false, expandedStackId: null, cardMenu: null, cardMenuRect: null })
     // The list remounts on filter change; leave the flyout open and it
     // would float over a tab that no longer contains the source card.
     if (get().previewItemId) get().setPreviewItemId(null)
@@ -275,6 +285,7 @@ export const useStore = create<AppState>((set, get) => ({
       } catch { /* ignore */ }
       set({
         emojiOpen: true,
+        toolsOpen: false,
         emojiCategory: landing,
         settingsOpen: false,
         previewItemId: null,
@@ -291,6 +302,31 @@ export const useStore = create<AppState>((set, get) => ({
       edge.setPreviewMode(false)
     } else {
       set({ emojiOpen: false })
+    }
+  },
+  holdOpenUntil: 0,
+  setHoldOpenUntil: (holdOpenUntil) => set({ holdOpenUntil }),
+  toolsOpen: false,
+  setToolsOpen: (toolsOpen) => {
+    if (toolsOpen) {
+      set({
+        toolsOpen: true,
+        emojiOpen: false,
+        settingsOpen: false,
+        previewItemId: null,
+        previewItemRect: null,
+        previewFlyoutRect: null,
+        styleFlyoutOpen: false,
+        styleFlyoutAnchorRect: null,
+        languageFlyoutOpen: false,
+        languageFlyoutAnchorRect: null,
+        expandedStackId: null,
+        cardMenu: null,
+        cardMenuRect: null
+      })
+      edge.setPreviewMode(false)
+    } else {
+      set({ toolsOpen: false })
     }
   },
   dragActive: false,
@@ -570,7 +606,8 @@ export const useStore = create<AppState>((set, get) => ({
       expandedStackId: null,
       cardMenu: null,
       cardMenuRect: null,
-      emojiOpen: settingsOpen ? false : get().emojiOpen
+      emojiOpen: settingsOpen ? false : get().emojiOpen,
+      toolsOpen: settingsOpen ? false : get().toolsOpen
     })
   },
   setDragActive: (dragActive) => set({ dragActive }),

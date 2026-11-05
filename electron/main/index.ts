@@ -21,6 +21,7 @@ import { mainT } from './i18n'
 import { initState, getWatcher, loadSettings, pushState, stopStateTimers, getStore } from './state'
 import { initAutoUpdater } from './updater'
 import { migrateFromEdgeDrop } from './migrateFromEdgeDrop'
+import { initTools } from './tools'
 import { createOnboardingWindow } from './onboardingWindow'
 import { onboardingDue } from '../../shared/onboarding'
 import { startFullscreenMonitor, stopFullscreenMonitor, triggerFullscreenCheck } from './fullscreen'
@@ -132,6 +133,8 @@ app.whenReady().then(() => {
   registerIpc()
   registerSendListeners()
   initState()
+  // Reminders (focus, tasks, prayer): one timer for the nearest one; nothing runs on the clipboard path.
+  initTools({ broadcast: (st) => pushState.tools(st), openTools: () => pushState.openTools() })
   prewarmDragIcons(isInteractive)
 
   // Reflect settings immediately.

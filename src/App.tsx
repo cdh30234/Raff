@@ -242,6 +242,14 @@ export default function App() {
         edge.setInteractive(next)
       }
     })
+    // A tools notification was clicked: open the shelf on the tools page.
+    const offOpenTools = edge.onOpenTools(() => {
+      // The pointer is probably elsewhere (at the notification): hold the shelf open a moment.
+      useStore.getState().setHoldOpenUntil(Date.now() + 8000)
+      useStore.getState().setOpen(true)
+      useStore.getState().setToolsOpen(true)
+      edge.setInteractive(true)
+    })
     const offOpenSettings = edge.onOpenSettings(() => {
       useStore.getState().setOpen(true)
       useStore.getState().setSettingsOpen(true)
@@ -282,6 +290,7 @@ export default function App() {
       offToast()
       offToggle()
       offOpenSettings()
+      offOpenTools()
       offTutorialStep()
       offUpdateAvailable()
       offUpdateProgress()

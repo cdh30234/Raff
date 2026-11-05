@@ -25,6 +25,7 @@ import { setOwnDragActive } from './externalDrag'
 import { clipboardSignature, formatTabularDataForClipboard, signatureMatchesItem } from '../clipboard/formats'
 import * as clipboard from '../clipboard/osClipboard'
 import type { ClipboardItem, DragRequest, ItemData, MergeResult } from '../../shared/types'
+import { getToolsState, updateTools } from './tools'
 import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState, getCachedUpdateState, triggerBackgroundCheck } from './updater'
 import { createId } from '../store/ids'
 import { isStoreBuild } from './config'
@@ -236,6 +237,9 @@ export function registerIpc(): void {
     if (isStoreBuild()) return
     await startUpdateDownload()
   })
+
+  handle('tools:get', () => getToolsState())
+  handle('tools:set', (patch) => updateTools(patch ?? {}))
 
   handle('updater:get-state', async () => {
     if (isStoreBuild()) return null

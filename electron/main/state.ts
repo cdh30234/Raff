@@ -176,6 +176,12 @@ export const pushState = {
   updateDownloaded(info: { version: string }): void {
     console.log('[Main] Sending app:update-downloaded event to renderer:', info)
     send('app:update-downloaded', info)
+  },
+  tools(state: import('../../shared/tools').ToolsState): void {
+    send('tools:state', state)
+  },
+  openTools(): void {
+    send('tools:open')
   }
 }
 

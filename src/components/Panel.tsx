@@ -8,13 +8,16 @@
  * the reverse: the content dims first and the shape draws back into the bar.
  */
 import { motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useLayoutEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useMemo, lazy, Suspense } from 'react'
 import { useStore } from '../store/appStore'
 import { PANEL_LEAVE_EVENT, PANEL_ENTER_EVENT } from '../hooks/useEdgeHover'
 import { Header } from './Header'
 import { ShelfSearch } from './ShelfSearch'
 import { ItemList } from './ItemList'
 import { EmojiPicker } from './EmojiPicker'
+import { ToolsToggle } from './ToolsToggle'
+// The tools page (focus, tasks, prayer) is its own chunk: nothing of it loads until it is first opened.
+const ToolsPanel = lazy(() => import('./tools/ToolsPanel'))
 import { Settings } from './Settings'
 import { ToastStack } from './Toast'
 import { ClearMenu } from './ClearMenu'
@@ -73,6 +76,7 @@ export function Panel() {
   const setQuery = useStore((s) => s.setQuery)
   const emojiOpen = useStore((s) => s.emojiOpen)
   const setEmojiOpen = useStore((s) => s.setEmojiOpen)
+  const toolsOpen = useStore((s) => s.toolsOpen)
   // Mount the picker on first open and keep it while the shelf stays open.
   // Tearing it (and ItemList) down on every smile click is what made the
   // switch hitch. Once the shelf has closed and the picker is no longer shown
@@ -183,7 +187,11 @@ export function Panel() {
     if (!blade) return
 
     const handleLeave = () => window.dispatchEvent(new Event(PANEL_LEAVE_EVENT))
-    const handleEnter = () => window.dispatchEvent(new Event(PANEL_ENTER_EVENT))
+    const handleEnter = () => {
+      // The pointer reached the shelf: an open-by-notification hold is no longer needed.
+      if (useStore.getState().holdOpenUntil) useStore.getState().setHoldOpenUntil(0)
+      window.dispatchEvent(new Event(PANEL_ENTER_EVENT))
+    }
 
     blade.addEventListener('mouseleave', handleLeave)
     blade.addEventListener('mouseenter', handleEnter)
@@ -593,7 +601,7 @@ export function Panel() {
           />
 
           <ToastStack />
-          {!isHorizontal && !emojiOpen && !settingsOpen && <ShelfSearch />}
+          {!isHorizontal && !emojiOpen && !toolsOpen && !settingsOpen && <ShelfSearch />}
           <div style={{ flex: 1, display: 'grid', gridTemplate: '1fr / 1fr', overflow: 'hidden', position: 'relative' }}>
             {/* Main clipboard / emoji view (persistent so ItemList is never torn down and doesn't jump on Y-axis) */}
             <div
@@ -614,16 +622,24 @@ export function Panel() {
                 <div
                   style={{
                     gridArea: '1 / 1 / 2 / 2',
-                    display: emojiOpen ? 'none' : 'flex',
+                    display: emojiOpen || toolsOpen ? 'none' : 'flex',
                     flexDirection: 'column',
                     minHeight: 0,
                     height: '100%',
                     overflow: 'hidden'
                   }}
-                  aria-hidden={emojiOpen}
+                  aria-hidden={emojiOpen || toolsOpen}
                 >
                   <ItemList />
                 </div>
+                {/* Tools: mounted only while shown in an open shelf, so a closed shelf holds none of it. */}
+                {toolsOpen && open ? (
+                  <div style={{ gridArea: '1 / 1 / 2 / 2', display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%', overflow: 'hidden' }}>
+                    <Suspense fallback={null}>
+                      <ToolsPanel isHorizontal={isHorizontal} />
+                    </Suspense>
+                  </div>
+                ) : null}
                 <div
                   style={{
                     gridArea: '1 / 1 / 2 / 2',
@@ -640,13 +656,17 @@ export function Panel() {
               </div>
               {!isHorizontal && !emojiOpen && (
                 <div className="footer" style={{ position: 'relative', zIndex: 100 }}>
-                  <div className="footer-capsule">
-                    <span className="footer-capsule-count" title={`${filteredCount}`}>
-                      {filteredCount}
-                    </span>
-                  </div>
+                  {!toolsOpen && (
+                    <div className="footer-capsule">
+                      <span className="footer-capsule-count" title={`${filteredCount}`}>
+                        {filteredCount}
+                      </span>
+                    </div>
+                  )}
+                  {/* Side docks: the tools toggle lives here (the header is full at 270px). */}
+                  <ToolsToggle />
                   <div className="spacer" />
-                  <ClearMenu
+                  {!toolsOpen && <ClearMenu
                     items={filteredItems}
                     disabled={clearable.length === 0}
                     panelOpen={open}
@@ -658,7 +678,7 @@ export function Panel() {
                         clear(clearable.map((it) => it.id))
                       }
                     }}
-                  />
+                  />}
                 </div>
               )}
             </div>

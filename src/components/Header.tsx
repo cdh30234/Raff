@@ -1,6 +1,7 @@
 import { useStore } from '../store/appStore'
 import { SegmentedControl } from './SegmentedControl'
 import { GearIcon, CloseIcon, InfoIcon, ClockIcon, TypeIcon, LinkIcon, ImageIcon, FilesIcon, PaletteIcon, EmojiSmileIcon } from './icons'
+import { ToolsToggle } from './ToolsToggle'
 import { playButtonClickSound } from '../lib/soundEffects'
 import { loadEmojiCatalog } from '../lib/emoji/load'
 import { ShelfSearch } from './ShelfSearch'
@@ -51,6 +52,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
   const setTypeFilter = useStore((s) => s.setTypeFilter)
   const emojiOpen = useStore((s) => s.emojiOpen)
   const setEmojiOpen = useStore((s) => s.setEmojiOpen)
+  const toolsOpen = useStore((s) => s.toolsOpen)
 
   const FILTERS: {
     id: TypeFilter
@@ -118,7 +120,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
               label: f.label,
               icon: <f.Icon width={14} height={14} />
             }))}
-            value={emojiOpen ? null : typeFilter}
+            value={emojiOpen || toolsOpen ? null : typeFilter}
             onChange={(val) => {
               playButtonClickSound()
               setTypeFilter(val)
@@ -143,6 +145,8 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
           >
             <EmojiSmileIcon width={14} height={14} />
           </button>
+          {/* Tools (focus, tasks, prayer): top dock only; side docks have it in the footer. */}
+          {isHorizontal && <ToolsToggle tabIndex={settingsOpen ? -1 : undefined} />}
         </div>
         {isHorizontal ? (
           <div
@@ -217,7 +221,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
         )}
       </div>
 
-      {isHorizontal && !settingsOpen && !emojiOpen && (
+      {isHorizontal && !settingsOpen && !emojiOpen && !toolsOpen && (
         <div className="header-search header-search-center">
           <ShelfSearch />
         </div>

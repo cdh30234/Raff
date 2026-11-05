@@ -42,6 +42,10 @@ export interface EdgeApi {
   installUpdate: () => Promise<void>
   checkForUpdatesManual: () => Promise<{ status: string; version?: string; error?: string }>
   startUpdateDownload: () => Promise<void>
+  /** Tools page: stored data plus today's prayer times. */
+  getTools: () => Promise<import('./tools').ToolsState>
+  /** Tools page: apply a change; resolves with the new state. */
+  setTools: (patch: Partial<import('./tools').ToolsData>) => Promise<import('./tools').ToolsState>
   getUpdateState: () => Promise<{
     hasUpdate: boolean
     latestVersion: string
@@ -82,6 +86,10 @@ export interface EdgeApi {
   onSettings: (cb: (settings: Settings) => void) => () => void
   onToggle: (cb: (open?: boolean) => void) => () => void
   onOpenSettings: (cb: () => void) => () => void
+  /** A tools notification was clicked: open the shelf on the tools page. */
+  onOpenTools: (cb: () => void) => () => void
+  /** Tools changed in main (a reminder fired, a focus phase ended). */
+  onTools: (cb: (state: import('./tools').ToolsState) => void) => () => void
   onDragEnd: (cb: () => void) => () => void
   onInternalDrop: (cb: (pos: { x: number; y: number }) => void) => () => void
   onCursorEdge: (cb: (data: {

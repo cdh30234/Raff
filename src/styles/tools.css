@@ -1,0 +1,339 @@
+/* ---- tools.css ----
+   The tools page (focus, tasks, prayer, companion). Loaded with its lazy chunk
+   only. Same language as the shelf: black blade, #141414 cards, white for the
+   active thing, round pills. Logical properties throughout, so RTL just works. */
+
+.tools {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+  min-height: 0;
+  padding: 2px 12px 12px;
+  box-sizing: border-box;
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: calc(12.5px * var(--font-scale, 1));
+}
+
+.tools-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tools-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.tools-body::-webkit-scrollbar { display: none; }
+
+/* Top dock: everything side by side in a short, wide strip. */
+.tools.is-horizontal {
+  flex-direction: row;
+  align-items: stretch;
+  padding: 4px 16px 12px;
+}
+.tools-card {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-card);
+  background: var(--bg-card);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.tools-card::-webkit-scrollbar { display: none; }
+.tools-companion-card {
+  flex: 0 0 96px;
+  display: grid;
+  place-items: center;
+}
+
+/* ── shared controls ─────────────────────────────────────────────── */
+.tools-muted { color: var(--text-tertiary); font-size: calc(11px * var(--font-scale, 1)); }
+
+.tools-btn {
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--bg-3);
+  color: var(--text-secondary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease, scale var(--dur-fast) ease;
+}
+.tools-btn:hover:not(:disabled) { background: #262626; color: #fff; }
+.tools-btn:active:not(:disabled) { scale: 0.96; }
+.tools-btn:disabled { opacity: 0.4; cursor: default; }
+.tools-btn.is-primary { background: #fff; color: #000; }
+.tools-btn.is-primary:hover:not(:disabled) { background: #e8e8e8; color: #000; }
+
+.tools-chip {
+  height: 22px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--bg-3);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: calc(11px * var(--font-scale, 1));
+  font-weight: 600;
+  cursor: pointer;
+}
+.tools-chip:disabled { cursor: default; opacity: 0.7; }
+
+.tools-icon-btn {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--bg-3);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.tools-icon-btn:hover { color: #fff; }
+.tools-icon-btn.is-on { background: #fff; color: #000; }
+
+.tools-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--text-tertiary);
+  font: inherit;
+  font-size: calc(11px * var(--font-scale, 1));
+  cursor: pointer;
+}
+.tools-link:hover { color: #fff; }
+
+.tools-input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--bg-card);
+  color: #fff;
+  font: inherit;
+  outline: none;
+  color-scheme: dark;
+}
+.tools.is-horizontal .tools-input { background: var(--bg-3); }
+.tools-input::placeholder { color: var(--text-tertiary); }
+.tools-input:focus { box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.28); }
+.tools-input.is-time { flex: 0 0 auto; height: 26px; padding: 0 8px; }
+
+.tools-select {
+  width: 100%;
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--bg-3);
+  color: #fff;
+  font: inherit;
+  color-scheme: dark;
+}
+
+.tools-field { display: grid; gap: 4px; color: var(--text-tertiary); font-size: calc(11px * var(--font-scale, 1)); }
+.tools-check { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); cursor: pointer; }
+.tools-check input { accent-color: #fff; width: 14px; height: 14px; margin: 0; }
+
+.tools-empty {
+  display: grid;
+  gap: 4px;
+  padding: 18px 8px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: calc(11.5px * var(--font-scale, 1));
+}
+.tools-empty strong { color: var(--text-secondary); font-size: calc(13px * var(--font-scale, 1)); }
+
+/* ── companion ───────────────────────────────────────────────────── */
+.companion {
+  position: relative;
+  display: flex;
+  gap: 7px;
+  padding: 2px 4px;
+  flex-shrink: 0;
+  cursor: default;
+}
+.companion-eye {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 20px;
+  border-radius: 999px;
+  background: #fff;
+  overflow: hidden;
+  animation: companion-blink 5.2s infinite;
+  transform-origin: center;
+}
+.companion-eye + .companion-eye { animation-delay: 0.04s; }
+.companion-pupil {
+  width: 7px;
+  height: 9px;
+  border-radius: 999px;
+  background: #000;
+  transition: transform 120ms ease-out;
+}
+.companion-z {
+  position: absolute;
+  inset-inline-end: -8px;
+  top: -6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  opacity: 0;
+}
+@keyframes companion-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.08); }
+}
+/* Resting: lids half shut, pupils down, a slow z drifting up. */
+.companion.is-resting .companion-eye { animation: companion-doze 3.6s ease-in-out infinite; }
+.companion.is-resting .companion-pupil { transform: translate(0, 4px) !important; }
+.companion.is-resting .companion-z { animation: companion-z 3.6s ease-in-out infinite; }
+@keyframes companion-doze {
+  0%, 100% { transform: scaleY(0.38); }
+  50% { transform: scaleY(0.26); }
+}
+@keyframes companion-z {
+  0% { opacity: 0; transform: translate(0, 4px) scale(0.8); }
+  40% { opacity: 1; }
+  100% { opacity: 0; transform: translate(4px, -8px) scale(1.1); }
+}
+/* Waking: a small hop. */
+.companion.is-waking { animation: companion-hop 0.55s var(--ease-spring); }
+@keyframes companion-hop {
+  0% { transform: translateY(0); }
+  35% { transform: translateY(-5px); }
+  100% { transform: translateY(0); }
+}
+.tools-companion-card .companion { transform: scale(1.6); }
+.tools-companion-card .companion.is-waking { animation: none; }
+
+/* ── focus ───────────────────────────────────────────────────────── */
+.focus-tool { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 6px; }
+.tools.is-horizontal .focus-tool { flex-direction: row; align-items: center; padding: 0; gap: 14px; }
+
+.focus-ring { position: relative; width: 150px; height: 150px; flex-shrink: 0; }
+.tools.is-horizontal .focus-ring { width: 96px; height: 96px; }
+.focus-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.focus-ring-track { fill: none; stroke: #1f1f1f; stroke-width: 6; }
+.focus-ring-fill {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
+}
+.phase-short .focus-ring-fill,
+.phase-long .focus-ring-fill { stroke: #7dd3a8; }
+.focus-ring-text { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 2px; }
+.focus-time { font-family: var(--font-mono); font-size: calc(28px * var(--font-scale, 1)); font-weight: 500; letter-spacing: -0.02em; }
+.tools.is-horizontal .focus-time { font-size: calc(19px * var(--font-scale, 1)); }
+.focus-phase { color: var(--text-tertiary); font-size: calc(11px * var(--font-scale, 1)); }
+
+.focus-side { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 0; }
+.tools.is-horizontal .focus-side { align-items: flex-start; gap: 8px; }
+.focus-rounds { display: flex; gap: 6px; }
+.focus-dot { width: 8px; height: 8px; border-radius: 50%; background: #262626; }
+.focus-dot.is-done { background: #fff; }
+.focus-dot.is-current { box-shadow: inset 0 0 0 2px #fff; background: transparent; }
+.focus-meta { display: flex; align-items: center; gap: 8px; }
+.focus-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+
+/* ── tasks ───────────────────────────────────────────────────────── */
+.tasks-tool { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.tasks-add { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.tasks-time { display: flex; align-items: center; gap: 8px; width: 100%; color: var(--text-tertiary); font-size: calc(11px * var(--font-scale, 1)); }
+.tasks-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.task {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 6px 0 4px;
+  border-radius: 10px;
+}
+.task:hover { background: #111; }
+.tools.is-horizontal .task:hover { background: #1c1c1c; }
+.task-check {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1.6px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  background: none;
+  color: #000;
+  cursor: pointer;
+}
+.task.is-done .task-check { background: #fff; border-color: #fff; }
+.task-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; unicode-bidi: plaintext; text-align: start; }
+.task.is-done .task-text { color: var(--text-tertiary); text-decoration: line-through; }
+.task-due { flex-shrink: 0; padding: 1px 7px; border-radius: 999px; background: #1f1f1f; color: var(--text-secondary); font-size: calc(10.5px * var(--font-scale, 1)); }
+.task-due.is-past { color: var(--text-tertiary); }
+.task-remove {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  opacity: 0;
+}
+.task:hover .task-remove,
+.task-remove:focus-visible { opacity: 1; }
+.task-remove:hover { color: var(--act-danger); background: var(--act-danger-bg); }
+.tasks-foot { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 0; }
+
+/* ── prayer ──────────────────────────────────────────────────────── */
+.prayer-tool { display: flex; flex-direction: column; gap: 10px; }
+.tools.is-horizontal .prayer-tool { gap: 6px; }
+.prayer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.prayer-next { display: grid; gap: 1px; }
+.prayer-next strong { font-size: calc(20px * var(--font-scale, 1)); font-weight: 700; line-height: 1.2; }
+.tools.is-horizontal .prayer-next strong { font-size: calc(15px * var(--font-scale, 1)); }
+.prayer-when { color: var(--text-secondary); font-size: calc(11.5px * var(--font-scale, 1)); }
+.prayer-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.tools.is-horizontal .prayer-list { grid-template-columns: repeat(3, 1fr); gap: 2px 10px; }
+.prayer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 10px;
+  color: var(--text-secondary);
+}
+.tools.is-horizontal .prayer-row { height: 20px; padding: 0 4px; font-size: calc(11px * var(--font-scale, 1)); }
+.prayer-row.is-sunrise { color: var(--text-tertiary); }
+.prayer-row.is-current { background: #1a1a1a; color: #fff; }
+.prayer-row.is-next .prayer-time { color: #fff; font-weight: 700; }
+.prayer-time { font-variant-numeric: tabular-nums; }
+.prayer-settings { display: grid; gap: 8px; }
+.prayer-notify { font-size: calc(11.5px * var(--font-scale, 1)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .companion-eye, .companion.is-resting .companion-eye, .companion-z, .companion.is-waking { animation: none !important; }
+  .focus-ring-fill { transition: none; }
+}

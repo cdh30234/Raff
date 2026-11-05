@@ -140,3 +140,16 @@ export { CustomFileIcon, CustomFileIcon as FileKindIcon, FileStackPhoto }
 
 export const FileIcon = (p: P) => <CustomFileIcon width={p.width ?? 16} height={p.height ?? 16} {...(p as any)} />
 export const FileIconGlyph = FileIcon
+
+/** The tools page toggle: four rounded tiles (focus, tasks, prayer…), drawn to match the Bold UI line. */
+export const ToolsIcon = (p: P) => {
+  const size = Number(p.width ?? p.height ?? 16)
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinejoin="round" aria-hidden="true">
+      <rect x="3.5" y="3.5" width="7" height="7" rx="2.2" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="3.5" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="3.5" />
+      <rect x="13.5" y="13.5" width="7" height="7" rx="2.2" />
+    </svg>
+  )
+}

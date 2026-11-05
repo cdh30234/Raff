@@ -198,6 +198,8 @@ const api = {
   checkForUpdatesManual: () => invoke('updater:check-manual'),
   startUpdateDownload: () => invoke('updater:start-download'),
   getUpdateState: () => invoke('updater:get-state'),
+  getTools: () => invoke('tools:get'),
+  setTools: (patch: Partial<import('../../shared/tools').ToolsData>) => invoke('tools:set', patch),
   quitApp: () => invoke('app:quit'),
   startDrag: (req: DragRequest) => {
     setInternalDragState(true)
@@ -242,6 +244,8 @@ const api = {
   onUpdateAvailable: (cb: (info: { version: string }) => void) => on('app:update-available', cb),
   onUpdateProgress: (cb: (progress: { percent: number; bytesPerSecond?: number; transferred?: number; total?: number }) => void) => on('app:update-progress', cb),
   onUpdateDownloaded: (cb: (info: { version: string }) => void) => on('app:update-downloaded', cb),
+  onTools: (cb: (state: EventArgs<'tools:state'>[0]) => void) => on('tools:state', cb),
+  onOpenTools: (cb: () => void) => on('tools:open', cb),
 
   /* Drag helpers */
   // (Handled natively by capturing drop event above)

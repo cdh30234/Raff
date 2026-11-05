@@ -26,6 +26,13 @@ function leaves(o: Tree, prefix = '', out: Record<string, unknown> = {}): Record
 const params = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(',')
 const EN = leaves(en as unknown as Tree)
 const CODES = Object.keys(TRANSLATIONS).filter((c) => c !== 'en')
+/**
+ * Raff's own section (the tools page). Translated in English and Arabic; other
+ * languages may leave it out and show English (t() falls back per key), but a
+ * language that has the section must have all of it.
+ */
+const RAFF_ONLY = 'tools.'
+const hasSection = (L: Record<string, unknown>) => Object.keys(L).some((k) => k.startsWith(RAFF_ONLY))
 
 function setLanguage(code: string) {
   useStore.setState((s) => ({ settings: { ...s.settings, language: code } }))
@@ -37,9 +44,18 @@ describe('every language has every string', () => {
     for (const code of Object.keys(TRANSLATIONS)) expect(LANGUAGES.some((l) => l.code === code), code).toBe(true)
   })
 
+  it('Arabic has the whole tools section (Raff is made for Arabic first)', () => {
+    const L = leaves(TRANSLATIONS.ar as unknown as Tree)
+    const toolKeys = Object.keys(EN).filter((k) => k.startsWith(RAFF_ONLY))
+    expect(toolKeys.length).toBeGreaterThan(40)
+    for (const key of toolKeys) expect(L[key], `ar ${key}`).toBeDefined()
+  })
+
   it.each(CODES)('%s: no key missing, none extra, same placeholders', (code) => {
     const L = leaves(TRANSLATIONS[code] as unknown as Tree)
+    const withTools = hasSection(L)
     for (const [key, enVal] of Object.entries(EN)) {
+      if (key.startsWith(RAFF_ONLY) && !withTools) continue
       const v = L[key]
       expect(v, `${code} ${key}`).toBeDefined()
       if (isPlural(enVal)) {

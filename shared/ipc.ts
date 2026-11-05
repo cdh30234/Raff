@@ -146,6 +146,11 @@ export interface InvokeMap {
 
   /** Get the list of connected displays. */
   'displays:list': { args: []; result: import('./types').DisplayInfo[] }
+
+  /** Tools page: stored data plus today's prayer times. */
+  'tools:get': { args: []; result: import('./tools').ToolsState }
+  /** Tools page: apply a change (focus, tasks, prayer, companion); returns the new state. */
+  'tools:set': { args: [patch: Partial<import('./tools').ToolsData>]; result: import('./tools').ToolsState }
 }
 
 /* ------------------------------------------------------------------ */
@@ -164,6 +169,10 @@ export interface EventMap {
   'window:toggle': [open?: boolean]
   /** Open the panel directly to settings from the main process (e.g. tray). */
   'window:open-settings': []
+  /** Tools changed in main (a reminder fired, a focus phase ended). */
+  'tools:state': [state: import('./tools').ToolsState]
+  /** Open the shelf on the tools page (a tools notification was clicked). */
+  'tools:open': []
   /** Fired when an OS drag initiated by the app has completed. */
   'item:drag-end': []
   /** Tutorial step sync */

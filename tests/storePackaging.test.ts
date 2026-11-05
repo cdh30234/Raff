@@ -75,6 +75,8 @@ describe('GitHub vs Store packaging contracts (on-disk, not assumed)', () => {
   it('keeps only runtime packages as production dependencies', () => {
     expect(Object.keys(pkg.dependencies).sort()).toEqual([
       '@resvg/resvg-js',
+      // Raff: prayer times, computed on the Mac (loaded only when the prayer page is on)
+      'adhan',
       'electron-updater',
       'koffi',
       'react',

@@ -12,6 +12,53 @@ export interface Plural {
 }
 
 export interface TranslationKeys {
+  /** Raff's tools page (focus, tasks, prayer, companion). Optional: other languages fall back to English. */
+  tools?: {
+    open: string
+    title: string
+    tabs: { focus: string; tasks: string; prayer: string }
+    companion: { on: string; off: string; hello: string; resting: string }
+    focus: {
+      phases: { focus: string; short: string; long: string }
+      start: string
+      pause: string
+      resume: string
+      reset: string
+      skip: string
+      roundOf: string
+      today: Plural
+      minutes: string
+      doneTitle: string
+      doneBody: string
+      doneLongBody: string
+      breakOverTitle: string
+      breakOverBody: string
+    }
+    tasks: {
+      placeholder: string
+      add: string
+      remind: string
+      none: string
+      noneHint: string
+      left: Plural
+      clearDone: string
+      remove: string
+      reminderTitle: string
+      tomorrow: string
+    }
+    prayer: {
+      next: string
+      inTime: string
+      now: string
+      city: string
+      method: string
+      hanafi: string
+      notify: string
+      notifyTitle: string
+      notifyBody: string
+      names: { fajr: string; sunrise: string; dhuhr: string; asr: string; maghrib: string; isha: string }
+    }
+  }
   filters: {
     all: string
     text: string
@@ -783,6 +830,78 @@ export const LANGUAGES: LanguageMeta[] = [
 ];
 
 export const en: TranslationKeys = {
+  tools: {
+    "open": "Tools",
+    "title": "Tools",
+    "tabs": {
+      "focus": "Focus",
+      "tasks": "Tasks",
+      "prayer": "Prayer"
+    },
+    "companion": {
+      "on": "Show the companion",
+      "off": "Hide the companion",
+      "hello": "Hello!",
+      "resting": "Resting…"
+    },
+    "focus": {
+      "phases": {
+        "focus": "Focus",
+        "short": "Short break",
+        "long": "Long break"
+      },
+      "start": "Start",
+      "pause": "Pause",
+      "resume": "Resume",
+      "reset": "Reset",
+      "skip": "Skip",
+      "roundOf": "Round {n} of {total}",
+      "today": {
+        "one": "{count} round today",
+        "other": "{count} rounds today"
+      },
+      "minutes": "{n} min",
+      "doneTitle": "Focus round done",
+      "doneBody": "Nice work. Take a short break.",
+      "doneLongBody": "All rounds done. Take a long break.",
+      "breakOverTitle": "Break's over",
+      "breakOverBody": "Ready for the next focus round?"
+    },
+    "tasks": {
+      "placeholder": "Add a task…",
+      "add": "Add",
+      "remind": "Remind me at",
+      "none": "No tasks yet",
+      "noneHint": "Write a task, and give it a time if you want a reminder.",
+      "left": {
+        "one": "{count} left",
+        "other": "{count} left"
+      },
+      "clearDone": "Clear done",
+      "remove": "Remove",
+      "reminderTitle": "Reminder",
+      "tomorrow": "tomorrow"
+    },
+    "prayer": {
+      "next": "Next",
+      "inTime": "in {time}",
+      "now": "now",
+      "city": "City",
+      "method": "Method",
+      "hanafi": "Hanafi Asr",
+      "notify": "Remind me at prayer times",
+      "notifyTitle": "It's time for {prayer}",
+      "notifyBody": "Prayer time has come.",
+      "names": {
+        "fajr": "Fajr",
+        "sunrise": "Sunrise",
+        "dhuhr": "Dhuhr",
+        "asr": "Asr",
+        "maghrib": "Maghrib",
+        "isha": "Isha"
+      }
+    }
+  },
   "filters": {
     "all": "All",
     "text": "Text",
@@ -8239,6 +8358,86 @@ export const hi: TranslationKeys = {
 };
 
 export const ar: TranslationKeys = {
+  tools: {
+    "open": "الأدوات",
+    "title": "الأدوات",
+    "tabs": {
+      "focus": "التركيز",
+      "tasks": "المهام",
+      "prayer": "الصلاة"
+    },
+    "companion": {
+      "on": "إظهار الرفيق",
+      "off": "إخفاء الرفيق",
+      "hello": "أهلاً!",
+      "resting": "يستريح…"
+    },
+    "focus": {
+      "phases": {
+        "focus": "تركيز",
+        "short": "استراحة قصيرة",
+        "long": "استراحة طويلة"
+      },
+      "start": "ابدأ",
+      "pause": "إيقاف مؤقت",
+      "resume": "متابعة",
+      "reset": "إعادة",
+      "skip": "تخطٍّ",
+      "roundOf": "الجولة {n} من {total}",
+      "today": {
+        "zero": "{count} جولة اليوم",
+        "one": "{count} جولة اليوم",
+        "two": "{count} جولتان اليوم",
+        "few": "{count} جولات اليوم",
+        "many": "{count} جولة اليوم",
+        "other": "{count} جولة اليوم"
+      },
+      "minutes": "{n} د",
+      "doneTitle": "انتهت جولة التركيز",
+      "doneBody": "أحسنت، خذ استراحة قصيرة.",
+      "doneLongBody": "أنهيت كل الجولات، خذ استراحة طويلة.",
+      "breakOverTitle": "انتهت الاستراحة",
+      "breakOverBody": "مستعد لجولة التركيز التالية؟"
+    },
+    "tasks": {
+      "placeholder": "أضف مهمة…",
+      "add": "إضافة",
+      "remind": "ذكّرني الساعة",
+      "none": "لا مهام بعد",
+      "noneHint": "اكتب مهمة، وحدّد لها وقتاً إن أردت تذكيراً.",
+      "left": {
+        "zero": "{count} مهمة متبقية",
+        "one": "{count} مهمة متبقية",
+        "two": "{count} مهمتان متبقيتان",
+        "few": "{count} مهام متبقية",
+        "many": "{count} مهمة متبقية",
+        "other": "{count} مهمة متبقية"
+      },
+      "clearDone": "مسح المنجزة",
+      "remove": "حذف",
+      "reminderTitle": "تذكير",
+      "tomorrow": "غداً"
+    },
+    "prayer": {
+      "next": "التالية",
+      "inTime": "بعد {time}",
+      "now": "الآن",
+      "city": "المدينة",
+      "method": "طريقة الحساب",
+      "hanafi": "العصر على المذهب الحنفي",
+      "notify": "ذكّرني عند دخول وقت الصلاة",
+      "notifyTitle": "حان وقت صلاة {prayer}",
+      "notifyBody": "حان الآن موعد الصلاة.",
+      "names": {
+        "fajr": "الفجر",
+        "sunrise": "الشروق",
+        "dhuhr": "الظهر",
+        "asr": "العصر",
+        "maghrib": "المغرب",
+        "isha": "العشاء"
+      }
+    }
+  },
   "filters": {
     "title": "الفلاتر",
     "colors": "الألوان",

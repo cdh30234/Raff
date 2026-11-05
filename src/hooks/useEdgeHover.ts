@@ -329,6 +329,8 @@ export function useEdgeHover(): void {
     const scheduleClose = (delay = GRACE_MS) => {
       const state = useStore.getState()
       if (state.sliderActive || state.edgeTransition?.active) return
+      // Opened by a notification: stay until the pointer arrives (or the hold runs out).
+      if (state.holdOpenUntil > Date.now()) return
       if (state.dragActive && !state.internalDragReq) return
       if (graceTimer !== undefined) return // already closing
 
