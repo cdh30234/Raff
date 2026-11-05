@@ -182,6 +182,23 @@ const workAreaCache = new WorkAreaCache((displayId) => {
   return stick?.workArea ? { displayId: stick.id, workArea: stick.workArea } : null
 })
 
+/**
+ * macOS top dock: the shelf hangs from the very top of the screen, over the
+ * menu bar, like a notch. Its "edge" is then the display's real top
+ * (bounds.y), not the work area's (which starts below the menu bar).
+ * Side docks and Windows keep the work area.
+ */
+function coversMenuBar(stickPosition: string | undefined): boolean {
+  return process.platform === 'darwin' && macNativeAvailable && stickPosition === 'top'
+}
+
+/** The work area stretched up to the display's top, for the menu-bar-covering top dock. */
+function withMenuBar(wa: { x: number; y: number; width: number; height: number }, displayId: number | undefined) {
+  const display = screen.getAllDisplays().find((d) => d.id === displayId) ?? screen.getDisplayMatching(wa)
+  const inset = wa.y - display.bounds.y
+  return inset > 0 ? { ...wa, y: display.bounds.y, height: wa.height + inset } : wa
+}
+
 /** Force a cache re-read (display topology events). */
 export function updateCachedWorkArea(): void {
   workAreaCache.refresh(currentStickDisplayId)
@@ -587,8 +604,10 @@ function _pollTick(): void {
 
   // Versioned read: rebuilds automatically whenever the stick display id
   // changed (Settings/tray switch, re-resolution after topology events).
-  const wa = workAreaCache.get(currentStickDisplayId)
-  if (!wa) return // no successful enumeration yet; retry next tick
+  const cachedWa = workAreaCache.get(currentStickDisplayId)
+  if (!cachedWa) return // no successful enumeration yet; retry next tick
+  // macOS top dock covers the menu bar: its trigger edge is the screen's real top.
+  const wa = coversMenuBar(settings.stickPosition) ? withMenuBar(cachedWa, currentStickDisplayId) : cachedWa
 
   // Seam-aware probe (unit-tested against simulated multi-display
   // topologies in tests/stickProbeScenarios.test.ts). The returned
@@ -814,6 +833,12 @@ function getStickGeometry(): { x: number; y: number; width: number; height: numb
   // origin (the "hover secondary does nothing, hover primary opens it on
   // secondary" report).
   workAreaCache.refresh(resolved.id)
+  // macOS top dock: hang from the display's real top, over the menu bar (the
+  // window is frameless with enableLargerThanScreen, so Electron keeps this y).
+  if (coversMenuBar(settings.stickPosition)) {
+    const top = withMenuBar({ x: result.x, y: result.y, width: result.width, height: result.height }, resolved.id)
+    return { x: result.x, y: top.y, width: result.width, height: result.height }
+  }
   return { x: result.x, y: result.y, width: result.width, height: result.height }
 }
 
@@ -843,7 +868,9 @@ export function createWindow(): BrowserWindow {
     roundedCorners: false,
     // macOS: a non-activating NSPanel floats over full-screen apps and
     // never steals focus from the app the user is pasting into.
-    ...(process.platform === 'darwin' ? { type: 'panel' as const, hiddenInMissionControl: true } : {}),
+    // enableLargerThanScreen: a frameless window may then sit over the menu bar
+    // (the top dock hangs from the screen's very top, see coversMenuBar).
+    ...(process.platform === 'darwin' ? { type: 'panel' as const, hiddenInMissionControl: true, enableLargerThanScreen: true } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.cjs'),
       contextIsolation: true,

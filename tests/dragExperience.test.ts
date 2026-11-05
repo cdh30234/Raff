@@ -113,7 +113,7 @@ describe('main: a drag from another app (externalDrag.ts)', () => {
     const tick = win.slice(win.indexOf('function _pollTick'))
     expect(tick.indexOf('setMacDropLevel(drag)')).toBeGreaterThan(0)
     expect(tick.indexOf('setMacDropLevel(drag)')).toBeLessThan(tick.indexOf('isFullscreenAppActive()'))
-    expect(tick.indexOf('setMacDropLevel(drag)')).toBeLessThan(tick.indexOf('if (!wa) return'))
+    expect(tick.indexOf('setMacDropLevel(drag)')).toBeLessThan(tick.indexOf('if (!cachedWa) return'))
   })
 
   it('macOS sees drags from other apps through the drag pasteboard', () => {
