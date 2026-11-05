@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useLayoutEffect, type ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useStore } from '../store/appStore'
-import type { DisplayInfo, UpdateMode } from '../../shared/types'
+import type { DisplayInfo, ShelfTheme, UpdateMode } from '../../shared/types'
 import {
   resolveUpdateMode,
   normalizeHoverOpenDelay,
@@ -1335,6 +1335,26 @@ export function Settings({
 
     // appearance
     return [
+      {
+        id: 'theme',
+        label: t('tools.theme.title'),
+        rows: [
+          {
+            id: 'theme',
+            title: t('tools.theme.title'),
+            desc: t('tools.theme.desc'),
+            below: pills<ShelfTheme>(
+              [
+                { label: t('tools.theme.black'), val: 'black' },
+                { label: t('tools.theme.glassDark'), val: 'glass-dark' },
+                { label: t('tools.theme.glass'), val: 'glass' }
+              ],
+              (v) => (settings.theme ?? 'black') === v,
+              (v) => patch({ theme: v })
+            )
+          }
+        ]
+      },
       {
         id: 'copy-indicator',
         label: t('appearance.copyIndicatorTitle') || 'COPY INDICATOR',

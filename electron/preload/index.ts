@@ -198,6 +198,12 @@ const api = {
   checkForUpdatesManual: () => invoke('updater:check-manual'),
   startUpdateDownload: () => invoke('updater:start-download'),
   getUpdateState: () => invoke('updater:get-state'),
+  getWallpaper: () => invoke('theme:wallpaper'),
+  getWeather: (cityId?: string) => invoke('home:weather', cityId),
+  getHomeApps: () => invoke('home:apps'),
+  openHomeApp: (path: string) => invoke('home:open-app', path),
+  watchMusic: (on: boolean) => invoke('music:watch', on),
+  musicCommand: (cmd: import('../../electron/main/music').MusicCommand, arg?: number) => invoke('music:command', cmd, arg),
   getTools: () => invoke('tools:get'),
   setTools: (patch: Partial<import('../../shared/tools').ToolsData>) => invoke('tools:set', patch),
   quitApp: () => invoke('app:quit'),
@@ -246,6 +252,7 @@ const api = {
   onUpdateDownloaded: (cb: (info: { version: string }) => void) => on('app:update-downloaded', cb),
   onTools: (cb: (state: EventArgs<'tools:state'>[0]) => void) => on('tools:state', cb),
   onOpenTools: (cb: () => void) => on('tools:open', cb),
+  onMusic: (cb: (state: EventArgs<'music:state'>[0]) => void) => on('music:state', cb),
 
   /* Drag helpers */
   // (Handled natively by capturing drop event above)

@@ -2,6 +2,7 @@ import { useStore } from '../store/appStore'
 import { SegmentedControl } from './SegmentedControl'
 import { GearIcon, CloseIcon, InfoIcon, ClockIcon, TypeIcon, LinkIcon, ImageIcon, FilesIcon, PaletteIcon, EmojiSmileIcon } from './icons'
 import { ToolsToggle } from './ToolsToggle'
+import { HomeToggle } from './HomeToggle'
 import { playButtonClickSound } from '../lib/soundEffects'
 import { loadEmojiCatalog } from '../lib/emoji/load'
 import { ShelfSearch } from './ShelfSearch'
@@ -53,6 +54,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
   const emojiOpen = useStore((s) => s.emojiOpen)
   const setEmojiOpen = useStore((s) => s.setEmojiOpen)
   const toolsOpen = useStore((s) => s.toolsOpen)
+  const homeOpen = useStore((s) => s.homeOpen)
 
   const FILTERS: {
     id: TypeFilter
@@ -112,6 +114,8 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
             transition: headerFade
           }}
         >
+          {/* Home first (top dock); side docks have it in the footer. */}
+          {isHorizontal && <HomeToggle tabIndex={settingsOpen ? -1 : undefined} />}
           {/* Type filters. With the emoji picker open no filter is shown as
               selected; picking one closes the picker (setTypeFilter). */}
           <SegmentedControl
@@ -120,7 +124,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
               label: f.label,
               icon: <f.Icon width={14} height={14} />
             }))}
-            value={emojiOpen || toolsOpen ? null : typeFilter}
+            value={emojiOpen || toolsOpen || homeOpen ? null : typeFilter}
             onChange={(val) => {
               playButtonClickSound()
               setTypeFilter(val)
@@ -221,7 +225,7 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
         )}
       </div>
 
-      {isHorizontal && !settingsOpen && !emojiOpen && !toolsOpen && (
+      {isHorizontal && !settingsOpen && !emojiOpen && !toolsOpen && !homeOpen && (
         <div className="header-search header-search-center">
           <ShelfSearch />
         </div>
@@ -232,14 +236,14 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
         </div>
       )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, paddingRight: 2, position: 'relative', zIndex: 260 }}>
-        {isHorizontal && !settingsOpen && itemCount != null && (
+        {isHorizontal && !settingsOpen && !homeOpen && !toolsOpen && itemCount != null && (
           <div className="footer-capsule" style={{ marginRight: 2 }}>
             <span className="footer-capsule-count" title={`${itemCount}`}>
               {itemCount}
             </span>
           </div>
         )}
-        {isHorizontal && clearProps && !settingsOpen && (
+        {isHorizontal && clearProps && !settingsOpen && !homeOpen && !toolsOpen && (
           <ClearMenu {...clearProps} menuDirection="down" />
         )}
         {settingsOpen && (

@@ -15,6 +15,17 @@ export interface ToolTask {
   createdAt: number
 }
 
+/** A plain countdown timer (the Home page's Timer card), separate from the focus rounds. */
+export interface TimerState {
+  status: 'idle' | 'running' | 'paused'
+  /** The chosen length, minutes (1..120). */
+  durationMin: number
+  endsAt?: number
+  remainingMs?: number
+}
+
+export const DEFAULT_TIMER: TimerState = { status: 'idle', durationMin: 5 }
+
 export type FocusPhase = 'focus' | 'short' | 'long'
 
 export interface FocusState {
@@ -146,6 +157,7 @@ export interface PrayerSettings {
 export interface ToolsData {
   tasks: ToolTask[]
   focus: FocusState
+  timer: TimerState
   prayer: PrayerSettings
   /** The resting companion (eyes) on the tools page and the empty shelf. */
   companion: boolean

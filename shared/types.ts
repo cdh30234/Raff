@@ -152,6 +152,9 @@ export interface MergeResult {
   message?: string
 }
 
+export type ShelfTheme = 'black' | 'glass-dark' | 'glass'
+export const SHELF_THEMES: ShelfTheme[] = ['black', 'glass-dark', 'glass']
+
 export interface Settings {
   /** Fraction of the screen height the hot zone occupies (0.2 - 0.6). */
   hotZoneHeight: number
@@ -174,6 +177,12 @@ export interface Settings {
   autoDeleteHours: number
   /** UI visual style density ('modern' | 'compact'). */
   uiStyle: 'modern' | 'compact'
+  /**
+   * Raff's shelf surface: 'black' (solid), 'glass-dark' (the wallpaper blurred
+   * under a dark tint) or 'glass' (the blurred wallpaper, lightly tinted).
+   * Optional: absent means 'black'.
+   */
+  theme?: ShelfTheme
   /** Flag to track if the onboarding tutorial is completed. */
   tutorialCompleted: boolean
   /** The welcome tour version the user has finished (shared/onboarding.ts); absent before 0.4.0. */

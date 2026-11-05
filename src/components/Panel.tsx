@@ -16,8 +16,12 @@ import { ShelfSearch } from './ShelfSearch'
 import { ItemList } from './ItemList'
 import { EmojiPicker } from './EmojiPicker'
 import { ToolsToggle } from './ToolsToggle'
+import { HomeToggle } from './HomeToggle'
+import { useGlassTheme } from '../hooks/useGlassTheme'
 // The tools page (focus, tasks, prayer) is its own chunk: nothing of it loads until it is first opened.
 const ToolsPanel = lazy(() => import('./tools/ToolsPanel'))
+// The Home page (timer, music, apps, date, weather): its own chunk too.
+const HomePanel = lazy(() => import('./home/HomePanel'))
 import { Settings } from './Settings'
 import { ToastStack } from './Toast'
 import { ClearMenu } from './ClearMenu'
@@ -77,6 +81,7 @@ export function Panel() {
   const emojiOpen = useStore((s) => s.emojiOpen)
   const setEmojiOpen = useStore((s) => s.setEmojiOpen)
   const toolsOpen = useStore((s) => s.toolsOpen)
+  const homeOpen = useStore((s) => s.homeOpen)
   // Mount the picker on first open and keep it while the shelf stays open.
   // Tearing it (and ItemList) down on every smile click is what made the
   // switch hitch. Once the shelf has closed and the picker is no longer shown
@@ -181,6 +186,7 @@ export function Panel() {
   const internalDragReq = useStore((s) => s.internalDragReq)
 
   const bladeRef = useRef<HTMLDivElement>(null)
+  useGlassTheme(bladeRef, settings.theme ?? 'black', open)
 
   useEffect(() => {
     const blade = bladeRef.current
@@ -327,6 +333,9 @@ export function Panel() {
   else if (isTop) containerClass += ' blade-top'
   else containerClass += ' blade-left'
   if (isHorizontal) containerClass += ' horizontal-dock'
+  // Shelf surface: solid black, or frosted glass over the wallpaper (useGlassTheme).
+  const theme = settings.theme ?? 'black'
+  containerClass += ` theme-${theme}`
   if (isVisuallyOpen) containerClass += ' is-open'
   if (isTransitioning) containerClass += ' is-transitioning'
 
@@ -601,7 +610,7 @@ export function Panel() {
           />
 
           <ToastStack />
-          {!isHorizontal && !emojiOpen && !toolsOpen && !settingsOpen && <ShelfSearch />}
+          {!isHorizontal && !emojiOpen && !toolsOpen && !homeOpen && !settingsOpen && <ShelfSearch />}
           <div style={{ flex: 1, display: 'grid', gridTemplate: '1fr / 1fr', overflow: 'hidden', position: 'relative' }}>
             {/* Main clipboard / emoji view (persistent so ItemList is never torn down and doesn't jump on Y-axis) */}
             <div
@@ -622,16 +631,24 @@ export function Panel() {
                 <div
                   style={{
                     gridArea: '1 / 1 / 2 / 2',
-                    display: emojiOpen || toolsOpen ? 'none' : 'flex',
+                    display: emojiOpen || toolsOpen || homeOpen ? 'none' : 'flex',
                     flexDirection: 'column',
                     minHeight: 0,
                     height: '100%',
                     overflow: 'hidden'
                   }}
-                  aria-hidden={emojiOpen || toolsOpen}
+                  aria-hidden={emojiOpen || toolsOpen || homeOpen}
                 >
                   <ItemList />
                 </div>
+                {/* Home: mounted only while shown in an open shelf (it watches the music player while mounted). */}
+                {homeOpen && open ? (
+                  <div style={{ gridArea: '1 / 1 / 2 / 2', display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%', overflow: 'hidden' }}>
+                    <Suspense fallback={null}>
+                      <HomePanel isHorizontal={isHorizontal} />
+                    </Suspense>
+                  </div>
+                ) : null}
                 {/* Tools: mounted only while shown in an open shelf, so a closed shelf holds none of it. */}
                 {toolsOpen && open ? (
                   <div style={{ gridArea: '1 / 1 / 2 / 2', display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%', overflow: 'hidden' }}>
@@ -656,7 +673,7 @@ export function Panel() {
               </div>
               {!isHorizontal && !emojiOpen && (
                 <div className="footer" style={{ position: 'relative', zIndex: 100 }}>
-                  {!toolsOpen && (
+                  {!toolsOpen && !homeOpen && (
                     <div className="footer-capsule">
                       <span className="footer-capsule-count" title={`${filteredCount}`}>
                         {filteredCount}
@@ -664,9 +681,10 @@ export function Panel() {
                     </div>
                   )}
                   {/* Side docks: the tools toggle lives here (the header is full at 270px). */}
+                  <HomeToggle />
                   <ToolsToggle />
                   <div className="spacer" />
-                  {!toolsOpen && <ClearMenu
+                  {!toolsOpen && !homeOpen && <ClearMenu
                     items={filteredItems}
                     disabled={clearable.length === 0}
                     panelOpen={open}

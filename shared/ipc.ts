@@ -147,6 +147,20 @@ export interface InvokeMap {
   /** Get the list of connected displays. */
   'displays:list': { args: []; result: import('./types').DisplayInfo[] }
 
+  /** Glass themes: the desktop picture and where the shelf window sits on it (macOS). */
+  'theme:wallpaper': { args: []; result: import('../electron/main/wallpaper').ShelfWallpaper | null }
+
+  /** Home page: current weather for a prayer city (cached; null when offline). */
+  'home:weather': { args: [cityId?: string]; result: import('../electron/main/home').HomeWeather | null }
+  /** Home page: the Dock's apps with icons. */
+  'home:apps': { args: []; result: import('../electron/main/home').HomeApp[] }
+  /** Home page: open one of the listed apps. */
+  'home:open-app': { args: [path: string]; result: boolean }
+  /** Home page: start/stop following Apple Music and Spotify; returns the current state. */
+  'music:watch': { args: [on: boolean]; result: import('../electron/main/music').MusicState }
+  /** Home page: play/pause, next, previous, seek (seconds). */
+  'music:command': { args: [cmd: import('../electron/main/music').MusicCommand, arg?: number]; result: void }
+
   /** Tools page: stored data plus today's prayer times. */
   'tools:get': { args: []; result: import('./tools').ToolsState }
   /** Tools page: apply a change (focus, tasks, prayer, companion); returns the new state. */
@@ -173,6 +187,8 @@ export interface EventMap {
   'tools:state': [state: import('./tools').ToolsState]
   /** Open the shelf on the tools page (a tools notification was clicked). */
   'tools:open': []
+  /** Now playing changed (only while the Home page watches). */
+  'music:state': [state: import('../electron/main/music').MusicState]
   /** Fired when an OS drag initiated by the app has completed. */
   'item:drag-end': []
   /** Tutorial step sync */

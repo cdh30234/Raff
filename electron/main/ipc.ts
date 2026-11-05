@@ -15,7 +15,7 @@ import { macCanSendKeys, macPressedMouseButtons, macSendCmdV, macWriteFileUrls }
 import { filterValidPaths, isExistingFilePath } from './pathValidation'
 import { type InvokeMap, type InvokeChannel, type SendMap, type SendChannel } from '../../shared/ipc'
 import { getStore, loadSettings, saveSettings, pushState, addFiles, getWatcher } from './state'
-import { resyncHover, sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract, setWindowFocusable, captureExternalForeground, traceFg, resolvePasteTarget } from './window'
+import { getMainWindow, resyncHover, sendToMainWindow, setInteractive, setHeartbeatPaused, setHotZoneWidth, repositionWindow, getDisplayListOptions, popUpAndRetract, setWindowFocusable, captureExternalForeground, traceFg, resolvePasteTarget } from './window'
 import { registerGlobalHotkey } from './index'
 import { getOnboardingWindow } from './onboardingWindow'
 import { rebuildTrayMenu } from './tray'
@@ -26,6 +26,9 @@ import { clipboardSignature, formatTabularDataForClipboard, signatureMatchesItem
 import * as clipboard from '../clipboard/osClipboard'
 import type { ClipboardItem, DragRequest, ItemData, MergeResult } from '../../shared/types'
 import { getToolsState, updateTools } from './tools'
+import { getShelfWallpaper } from './wallpaper'
+import { getHomeApps, getWeather, openHomeApp } from './home'
+import { musicCommand, watchMusic } from './music'
 import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState, getCachedUpdateState, triggerBackgroundCheck } from './updater'
 import { createId } from '../store/ids'
 import { isStoreBuild } from './config'
@@ -238,6 +241,12 @@ export function registerIpc(): void {
     await startUpdateDownload()
   })
 
+  handle('theme:wallpaper', () => getShelfWallpaper(getMainWindow()))
+  handle('home:weather', (cityId) => getWeather(cityId))
+  handle('home:apps', () => getHomeApps())
+  handle('home:open-app', (path) => openHomeApp(String(path)))
+  handle('music:watch', (on) => watchMusic(!!on, (st) => sendToMainWindow('music:state', st)))
+  handle('music:command', (cmd, arg) => musicCommand(cmd, arg))
   handle('tools:get', () => getToolsState())
   handle('tools:set', (patch) => updateTools(patch ?? {}))
 

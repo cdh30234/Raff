@@ -42,6 +42,20 @@ export interface EdgeApi {
   installUpdate: () => Promise<void>
   checkForUpdatesManual: () => Promise<{ status: string; version?: string; error?: string }>
   startUpdateDownload: () => Promise<void>
+  /** Glass themes: the desktop picture and where the shelf window sits on it (macOS). */
+  getWallpaper: () => Promise<import('../electron/main/wallpaper').ShelfWallpaper | null>
+  /** Home page: current weather for a prayer city. */
+  getWeather: (cityId?: string) => Promise<import('../electron/main/home').HomeWeather | null>
+  /** Home page: the Dock's apps with icons. */
+  getHomeApps: () => Promise<import('../electron/main/home').HomeApp[]>
+  /** Home page: open one of the listed apps. */
+  openHomeApp: (path: string) => Promise<boolean>
+  /** Home page: follow the music players (true) or stop (false). */
+  watchMusic: (on: boolean) => Promise<import('../electron/main/music').MusicState>
+  /** Home page: control the player. */
+  musicCommand: (cmd: import('../electron/main/music').MusicCommand, arg?: number) => Promise<void>
+  /** Now playing changed. */
+  onMusic: (cb: (state: import('../electron/main/music').MusicState) => void) => () => void
   /** Tools page: stored data plus today's prayer times. */
   getTools: () => Promise<import('./tools').ToolsState>
   /** Tools page: apply a change; resolves with the new state. */

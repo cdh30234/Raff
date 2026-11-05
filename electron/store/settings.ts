@@ -6,7 +6,7 @@
  * defaults so a bad field never takes the whole app down.
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
-import { DEFAULT_SETTINGS, isUpdateMode, normalizeHoverOpenDelay, type Settings } from '../../shared/types'
+import { DEFAULT_SETTINGS, isUpdateMode, normalizeHoverOpenDelay, SHELF_THEMES, type Settings } from '../../shared/types'
 import { PATHS } from './paths'
 
 let cache: Settings | null = null
@@ -21,6 +21,9 @@ function merge(base: Settings, patch: Partial<Settings>): Settings {
   out.hoverOpenDelay = normalizeHoverOpenDelay(out.hoverOpenDelay)
   if (out.uiStyle !== 'modern' && out.uiStyle !== 'compact') {
     out.uiStyle = 'modern'
+  }
+  if (out.theme !== undefined && !SHELF_THEMES.includes(out.theme)) {
+    out.theme = 'black'
   }
   if (out.stickPosition !== 'left' && out.stickPosition !== 'right' && out.stickPosition !== 'top') {
     out.stickPosition = 'left'

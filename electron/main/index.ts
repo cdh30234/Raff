@@ -22,6 +22,7 @@ import { initState, getWatcher, loadSettings, pushState, stopStateTimers, getSto
 import { initAutoUpdater } from './updater'
 import { migrateFromEdgeDrop } from './migrateFromEdgeDrop'
 import { initTools } from './tools'
+import { stopMusic } from './music'
 import { createOnboardingWindow } from './onboardingWindow'
 import { onboardingDue } from '../../shared/onboarding'
 import { startFullscreenMonitor, stopFullscreenMonitor, triggerFullscreenCheck } from './fullscreen'
@@ -82,6 +83,7 @@ protocol.registerSchemesAsPrivileged([
 
 // ---- app lifecycle ---------------------------------------------------------
 app.on('before-quit', () => {
+  stopMusic()
   runtime.quitting = true
   stopCursorPoll()
   stopHeartbeat()

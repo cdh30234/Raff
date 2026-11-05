@@ -25,6 +25,8 @@ import './styles/settings.css'
 import './styles/emoji.css'
 // Last: right-to-left fixes for Arabic / Persian / Hebrew (layers on top of the component styles).
 import './styles/rtl.css'
+// Shelf themes (black / glass-dark / glass).
+import './styles/themes.css'
 
 const container = document.getElementById('root')
 if (!container) throw new Error('#root element not found')

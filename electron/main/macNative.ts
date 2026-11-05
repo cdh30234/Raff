@@ -215,6 +215,18 @@ export function macDragPasteboardChangeCount(): number {
   })
 }
 
+/** File path of the desktop picture on the primary screen, or null (none, or not a file). */
+export function macDesktopImagePath(): string | null {
+  return withPool<string | null>(null, (o) => {
+    const ws = o.msgId(o.getClass('NSWorkspace'), o.sel('sharedWorkspace'))
+    const screens = o.msgId(o.getClass('NSScreen'), o.sel('screens'))
+    const screen = screens ? o.msgIdIdx(screens, o.sel('objectAtIndex:'), 0) : null
+    const url = ws && screen ? o.msgIdStr(ws, o.sel('desktopImageURLForScreen:'), screen) : null
+    const path = url ? o.msgId(url, o.sel('path')) : null
+    return path ? o.msgCStr(path, o.sel('UTF8String')) : null
+  })
+}
+
 /** pid of the frontmost application (0 when unknown). */
 export function macFrontmostPid(): number {
   return withPool(0, (o) => {

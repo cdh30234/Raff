@@ -15,6 +15,17 @@ export interface TranslationKeys {
   /** Raff's tools page (focus, tasks, prayer, companion). Optional: other languages fall back to English. */
   tools?: {
     open: string
+    theme: { title: string; desc: string; black: string; glassDark: string; glass: string }
+    nav: { home: string; clipboard: string; tools: string }
+    weather: {
+      now: string
+      feels: string
+      unavailable: string
+      codes: { clear: string; mostlyClear: string; partlyCloudy: string; cloudy: string; fog: string; drizzle: string; rain: string; snow: string; showers: string; thunder: string }
+    }
+    music: { nothing: string; openPlayer: string; play: string; pause: string; next: string; previous: string; permission: string }
+    timer: { title: string; start: string; pause: string; resume: string; cancel: string; doneTitle: string; doneBody: string; pick: string }
+    apps: { title: string; empty: string; open: string }
     title: string
     tabs: { focus: string; tasks: string; prayer: string }
     companion: { on: string; off: string; hello: string; resting: string }
@@ -832,6 +843,59 @@ export const LANGUAGES: LanguageMeta[] = [
 export const en: TranslationKeys = {
   tools: {
     "open": "Tools",
+    "theme": {
+      "title": "Theme",
+      "desc": "The shelf's surface: solid black, or frosted glass over your wallpaper.",
+      "black": "Black",
+      "glassDark": "Glass + black",
+      "glass": "Glass"
+    },
+    "nav": {
+      "home": "Home",
+      "clipboard": "Clipboard",
+      "tools": "Tools"
+    },
+    "weather": {
+      "now": "{temp} now in {city}",
+      "feels": "feels {temp}",
+      "unavailable": "Weather unavailable",
+      "codes": {
+        "clear": "Clear",
+        "mostlyClear": "Mostly clear",
+        "partlyCloudy": "Partly cloudy",
+        "cloudy": "Cloudy",
+        "fog": "Fog",
+        "drizzle": "Drizzle",
+        "rain": "Rain",
+        "snow": "Snow",
+        "showers": "Showers",
+        "thunder": "Thunderstorm"
+      }
+    },
+    "music": {
+      "nothing": "Nothing playing",
+      "openPlayer": "Play something in Music or Spotify",
+      "play": "Play",
+      "pause": "Pause",
+      "next": "Next",
+      "previous": "Previous",
+      "permission": "Allow Raff to control {player}: System Settings → Privacy & Security → Automation"
+    },
+    "timer": {
+      "title": "Timer",
+      "start": "Start timer",
+      "pause": "Pause",
+      "resume": "Resume",
+      "cancel": "Cancel",
+      "doneTitle": "Timer finished",
+      "doneBody": "Your {minutes}-minute timer is up.",
+      "pick": "Drag to set the time"
+    },
+    "apps": {
+      "title": "Apps",
+      "empty": "Your Dock apps appear here",
+      "open": "Open {app}"
+    },
     "title": "Tools",
     "tabs": {
       "focus": "Focus",
@@ -8360,6 +8424,59 @@ export const hi: TranslationKeys = {
 export const ar: TranslationKeys = {
   tools: {
     "open": "الأدوات",
+    "theme": {
+      "title": "المظهر",
+      "desc": "سطح الرف: أسود كامل، أو زجاج شفاف فوق خلفية سطح مكتبك.",
+      "black": "أسود",
+      "glassDark": "زجاج وأسود",
+      "glass": "زجاج"
+    },
+    "nav": {
+      "home": "الرئيسية",
+      "clipboard": "الحافظة",
+      "tools": "الأدوات"
+    },
+    "weather": {
+      "now": "{temp} الآن في {city}",
+      "feels": "الإحساس {temp}",
+      "unavailable": "الطقس غير متاح",
+      "codes": {
+        "clear": "صافٍ",
+        "mostlyClear": "صافٍ غالباً",
+        "partlyCloudy": "غائم جزئياً",
+        "cloudy": "غائم",
+        "fog": "ضباب",
+        "drizzle": "رذاذ",
+        "rain": "مطر",
+        "snow": "ثلج",
+        "showers": "زخات",
+        "thunder": "عاصفة رعدية"
+      }
+    },
+    "music": {
+      "nothing": "لا شيء قيد التشغيل",
+      "openPlayer": "شغّل شيئاً في Music أو Spotify",
+      "play": "تشغيل",
+      "pause": "إيقاف مؤقت",
+      "next": "التالي",
+      "previous": "السابق",
+      "permission": "اسمح لـ«رف» بالتحكم في {player}: إعدادات النظام ← الخصوصية والأمن ← الأتمتة"
+    },
+    "timer": {
+      "title": "المؤقت",
+      "start": "ابدأ المؤقت",
+      "pause": "إيقاف مؤقت",
+      "resume": "متابعة",
+      "cancel": "إلغاء",
+      "doneTitle": "انتهى المؤقت",
+      "doneBody": "انتهى مؤقت الـ{minutes} دقيقة.",
+      "pick": "اسحب لتحديد الوقت"
+    },
+    "apps": {
+      "title": "التطبيقات",
+      "empty": "تظهر هنا تطبيقات الـDock",
+      "open": "فتح {app}"
+    },
     "title": "الأدوات",
     "tabs": {
       "focus": "التركيز",

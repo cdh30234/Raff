@@ -1,0 +1,80 @@
+/* ---- themes.css ----
+   Raff's shelf surfaces. 'black' is the original solid blade. The glass themes
+   draw the wallpaper (useGlassTheme sets --glass-image / -size / -pos) blurred
+   under the blade's content, then a tint on top of it:
+     glass-dark  — the wallpaper's colour under deep black: calm and readable
+     glass       — lighter, more of the wallpaper shows through
+   Both layers are pseudo-elements in the blade's own stacking context
+   (isolation), so no content element needs to change. */
+
+.blade-container.theme-glass .blade,
+.blade-container.theme-glass-dark .blade {
+  background: transparent;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* The blurred wallpaper, overhanging the blade (GLASS_BLEED_PX) so the blur has no faded rim. */
+.blade-container.theme-glass .blade::before,
+.blade-container.theme-glass-dark .blade::before {
+  content: '';
+  position: absolute;
+  inset: -48px;
+  z-index: -2;
+  background-color: #101014;
+  background-image: var(--glass-image, none);
+  background-size: var(--glass-size, cover);
+  background-position: var(--glass-pos, center);
+  background-repeat: no-repeat;
+  filter: blur(34px) saturate(1.5);
+  pointer-events: none;
+}
+
+/* The tint, and a hairline of light along the edge like real glass. */
+.blade-container.theme-glass .blade::after,
+.blade-container.theme-glass-dark .blade::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.blade-container.theme-glass-dark .blade::after {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.74), rgba(0, 0, 0, 0.84));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+}
+.blade-container.theme-glass .blade::after {
+  background: linear-gradient(180deg, rgba(18, 18, 24, 0.34), rgba(10, 10, 14, 0.5));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+/* The black connector curves belong to the solid blade only. */
+.blade-container.theme-glass .flare-top,
+.blade-container.theme-glass .flare-bottom,
+.blade-container.theme-glass .flare-horizontal,
+.blade-container.theme-glass-dark .flare-top,
+.blade-container.theme-glass-dark .flare-bottom,
+.blade-container.theme-glass-dark .flare-horizontal {
+  display: none;
+}
+
+/* Surfaces inside the blade turn translucent, so the glass carries through. */
+.blade-container.theme-glass-dark {
+  --bg-card: rgba(255, 255, 255, 0.06);
+  --bg-card-hover: rgba(255, 255, 255, 0.1);
+  --bg-chip: rgba(255, 255, 255, 0.06);
+  --bg-2: rgba(255, 255, 255, 0.06);
+  --bg-3: rgba(255, 255, 255, 0.1);
+  --act-surface: rgba(255, 255, 255, 0.12);
+  --act-surface-hover: rgba(255, 255, 255, 0.18);
+}
+.blade-container.theme-glass {
+  --bg-card: rgba(255, 255, 255, 0.12);
+  --bg-card-hover: rgba(255, 255, 255, 0.17);
+  --bg-chip: rgba(255, 255, 255, 0.12);
+  --bg-2: rgba(255, 255, 255, 0.12);
+  --bg-3: rgba(255, 255, 255, 0.16);
+  --act-surface: rgba(255, 255, 255, 0.18);
+  --act-surface-hover: rgba(255, 255, 255, 0.24);
+}

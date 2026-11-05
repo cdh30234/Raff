@@ -153,3 +153,13 @@ export const ToolsIcon = (p: P) => {
     </svg>
   )
 }
+
+/** The Home page toggle: a rounded house, drawn to match the Bold UI line. */
+export const HomeIcon = (p: P) => {
+  const size = Number(p.width ?? p.height ?? 16)
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinejoin="round" strokeLinecap="round" aria-hidden="true">
+      <path d="M4 10.4 12 4l8 6.4V19a1.5 1.5 0 0 1-1.5 1.5h-3.8v-5.6H9.3v5.6H5.5A1.5 1.5 0 0 1 4 19z" />
+    </svg>
+  )
+}

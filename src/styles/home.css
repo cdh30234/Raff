@@ -1,0 +1,232 @@
+/* ---- home.css ----
+   The Home page cards. Loaded with its lazy chunk only. Follows the shelf's
+   theme through the shared tokens (--bg-card etc. turn translucent on glass). */
+
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  min-height: 0;
+  padding: 2px 12px 12px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  scrollbar-width: none;
+  color: #fff;
+  font-family: var(--font-ui);
+}
+.home::-webkit-scrollbar { display: none; }
+
+.home.is-horizontal {
+  flex-direction: row;
+  align-items: stretch;
+  padding: 2px 16px 12px;
+  overflow: hidden;
+}
+.home-slot { min-width: 0; display: flex; }
+.home-slot > * { flex: 1; }
+.home-slot.is-timer { flex: 0 0 150px; }
+.home-slot.is-music { flex: 2.2 1 0; }
+.home-slot.is-apps { flex: 0 0 104px; }
+.home-slot.is-date { flex: 0 0 130px; }
+.home-slot.is-weather { flex: 1.6 1 0; }
+.home-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.home-card {
+  position: relative;
+  min-width: 0;
+  border-radius: 18px;
+  background: var(--bg-card, #141414);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.blade-container.theme-glass .home-card,
+.blade-container.theme-glass-dark .home-card {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.home-card-label { color: var(--text-tertiary); font-size: calc(11px * var(--font-scale, 1)); font-weight: 600; }
+
+.home-pill {
+  height: 28px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font: inherit;
+  font-size: calc(12px * var(--font-scale, 1));
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 140ms ease, scale 140ms ease;
+}
+.home-pill:hover { background: rgba(255, 255, 255, 0.16); }
+.home-pill:active { scale: 0.96; }
+.home-pill.is-accent { color: #ff9f2e; background: rgba(255, 159, 46, 0.16); }
+.home-pill.is-accent-fill { color: #ffb15a; background: rgba(255, 159, 46, 0.24); }
+.home-round {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  cursor: pointer;
+  transition: scale 140ms ease, background-color 140ms ease;
+}
+.home-round:active { scale: 0.92; }
+.home-round.is-accent { background: rgba(255, 159, 46, 0.22); color: #ff9f2e; }
+
+/* ── timer ───────────────────────────────────────────────── */
+.timer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  min-height: 120px;
+}
+.timer-time {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: #ff9f2e;
+  font-family: var(--font-ui);
+  font-size: calc(32px * var(--font-scale, 1));
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  cursor: default;
+}
+.timer-card.is-idle .timer-time { color: rgba(255, 255, 255, 0.9); cursor: pointer; }
+.timer-buttons { display: flex; gap: 10px; }
+.timer-edge { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.timer-edge rect { fill: none; stroke: #ff9f2e; stroke-width: 1.6; vector-effect: non-scaling-stroke; transition: stroke-dasharray 1s linear; }
+
+.timer-picker { display: flex; flex-direction: column; justify-content: center; gap: 10px; width: 100%; padding: 4px 0; }
+.timer-picker-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 0 4px; }
+.timer-picker-time { color: #ff9f2e; font-size: calc(30px * var(--font-scale, 1)); font-weight: 700; font-variant-numeric: tabular-nums; min-width: 96px; }
+.timer-picker-actions { display: flex; gap: 8px; margin-inline-start: auto; }
+
+/* ── ruler ───────────────────────────────────────────────── */
+.ruler { position: relative; height: 66px; }
+.ruler-track {
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  cursor: grab;
+  outline: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.ruler-track::-webkit-scrollbar { display: none; }
+.ruler-track.is-dragging { cursor: grabbing; }
+.ruler-ticks { position: relative; height: 100%; margin: 0 50%; }
+.ruler-tick { position: absolute; bottom: 14px; width: 1.5px; height: 12px; background: rgba(255, 159, 46, 0.4); border-radius: 1px; transform: translateX(-50%); }
+.ruler-tick.is-major { height: 22px; background: rgba(255, 159, 46, 0.85); }
+.ruler-label {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 159, 46, 0.9);
+  font-size: calc(11.5px * var(--font-scale, 1));
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ruler-pointer {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  width: 2px;
+  height: 34px;
+  background: #fff;
+  border-radius: 1px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.ruler-pointer::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: #ff9f2e;
+  border-top: 0;
+}
+
+/* ── music ───────────────────────────────────────────────── */
+.music-card { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; min-height: 120px; isolation: isolate; }
+.music-backdrop {
+  position: absolute;
+  inset: -20px;
+  z-index: -2;
+  background-size: cover;
+  background-position: center;
+  filter: blur(18px) saturate(1.3);
+  transform: scale(1.1);
+}
+.music-card:has(.music-backdrop)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.62));
+}
+.music-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.music-art { width: 30px; height: 30px; border-radius: 7px; object-fit: cover; flex-shrink: 0; }
+.music-art.is-blank { background: rgba(255, 255, 255, 0.12); }
+.music-meta { display: grid; min-width: 0; line-height: 1.2; }
+.music-meta strong, .music-meta span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.music-meta strong { font-size: calc(12px * var(--font-scale, 1)); }
+.music-meta span { font-size: calc(10.5px * var(--font-scale, 1)); color: rgba(255, 255, 255, 0.7); }
+.music-title { margin-top: auto; font-size: calc(16px * var(--font-scale, 1)); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.music-bar { height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.25); cursor: pointer; overflow: hidden; }
+.music-bar span { display: block; height: 100%; background: #fff; border-radius: 2px; }
+.music-times { display: flex; justify-content: space-between; font-size: calc(10px * var(--font-scale, 1)); color: rgba(255, 255, 255, 0.75); font-variant-numeric: tabular-nums; }
+.music-controls { display: flex; justify-content: center; align-items: center; gap: 18px; }
+.music-controls button { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 0; border-radius: 50%; background: none; color: #fff; cursor: pointer; transition: scale 140ms ease, background-color 140ms ease; }
+.music-controls button:hover { background: rgba(255, 255, 255, 0.14); }
+.music-controls button:active { scale: 0.9; }
+.music-controls .is-main { width: 34px; height: 34px; background: rgba(255, 255, 255, 0.16); }
+.music-card.is-empty { align-items: center; justify-content: center; text-align: center; gap: 4px; color: var(--text-tertiary); font-size: calc(11px * var(--font-scale, 1)); padding: 12px; }
+.music-card.is-empty strong { color: var(--text-secondary); font-size: calc(13px * var(--font-scale, 1)); }
+
+/* ── date / weather / apps ───────────────────────────────── */
+.date-card { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; min-height: 110px; }
+.date-top { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 5px; font-size: calc(16px * var(--font-scale, 1)); font-weight: 700; text-align: center; line-height: 1.2; }
+.date-month { white-space: nowrap; }
+.date-weekday { color: #ff453a; }
+.date-day { font-size: calc(54px * var(--font-scale, 1)); font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.home:not(.is-horizontal) .date-day { font-size: calc(40px * var(--font-scale, 1)); }
+
+.weather-card { display: flex; align-items: center; gap: 10px; padding: 12px 14px; min-height: 96px; }
+.weather-text { margin: 0; font-size: calc(19px * var(--font-scale, 1)); line-height: 1.25; font-weight: 600; }
+.home:not(.is-horizontal) .weather-text { font-size: calc(15px * var(--font-scale, 1)); }
+.weather-text strong { color: #fff; }
+.weather-text span { color: rgba(255, 255, 255, 0.55); }
+.weather-icon { flex-shrink: 0; margin-inline-start: auto; color: #fff; }
+.weather-card.is-empty, .weather-card.is-loading { justify-content: center; color: var(--text-tertiary); font-size: calc(11.5px * var(--font-scale, 1)); }
+
+.apps-card { display: grid; gap: 6px; padding: 8px; align-content: center; justify-items: center; }
+.app-tile { display: grid; place-items: center; width: 42px; height: 42px; padding: 0; border: 0; border-radius: 12px; background: none; cursor: pointer; transition: scale 160ms var(--ease-spring), background-color 140ms ease; }
+.app-tile:hover { background: rgba(255, 255, 255, 0.08); scale: 1.06; }
+.app-tile:active { scale: 0.94; }
+.app-tile img { width: 36px; height: 36px; }
+.app-tile-blank { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: rgba(255, 255, 255, 0.14); font-weight: 700; }
+.apps-empty { grid-column: 1 / -1; color: var(--text-tertiary); font-size: calc(11px * var(--font-scale, 1)); text-align: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .timer-edge rect { transition: none; }
+}
+
+/* Side docks: cards keep their natural height and the page scrolls. */
+.home:not(.is-horizontal) > * { flex-shrink: 0; }
+.home:not(.is-horizontal) .music-title { margin-top: 6px; }
+.home:not(.is-horizontal) .music-card { min-height: 150px; }

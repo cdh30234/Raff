@@ -14,6 +14,7 @@ import { mainT } from './i18n'
 import {
   advanceFocus,
   cityForTimeZone,
+  DEFAULT_TIMER,
   defaultFocus,
   localDay,
   PRAYER_CITIES,
@@ -46,6 +47,7 @@ function defaults(): StoredTools {
   return {
     tasks: [],
     focus: defaultFocus(),
+    timer: { ...DEFAULT_TIMER },
     prayer: { enabled: true, cityId: city.id, method: city.method, hanafiAsr: false, notify: false },
     companion: true
   }
@@ -61,6 +63,7 @@ function load(): StoredTools {
         ...base,
         ...raw,
         focus: { ...base.focus, ...(raw.focus ?? {}) },
+        timer: { ...base.timer, ...(raw.timer ?? {}) },
         prayer: { ...base.prayer, ...(raw.prayer ?? {}) },
         tasks: Array.isArray(raw.tasks) ? raw.tasks : []
       }
@@ -163,6 +166,13 @@ function tick(): void {
     else notify(mainT('tools.focus.breakOverTitle'), mainT('tools.focus.breakOverBody'))
   }
 
+  if (d.timer.status === 'running' && d.timer.endsAt && d.timer.endsAt <= now + 500) {
+    const minutes = d.timer.durationMin
+    d.timer = { ...d.timer, status: 'idle', endsAt: undefined, remainingMs: undefined }
+    changed = true
+    notify(mainT('tools.timer.doneTitle'), mainT('tools.timer.doneBody', { minutes }))
+  }
+
   for (const task of d.tasks) {
     if (!task.done && task.due && !task.notified && task.due <= now + 500) {
       task.notified = true
@@ -197,6 +207,7 @@ function arm(): void {
   const now = Date.now()
   const times: number[] = []
   if (d.focus.status === 'running' && d.focus.endsAt) times.push(d.focus.endsAt)
+  if (d.timer.status === 'running' && d.timer.endsAt) times.push(d.timer.endsAt)
   for (const t of d.tasks) if (!t.done && t.due && !t.notified) times.push(t.due)
   if (d.prayer.enabled && d.prayer.notify) {
     const next = nextPrayer(d, now)
@@ -220,6 +231,7 @@ export function getToolsState(): Promise<ToolsState> {
 export async function updateTools(patch: Partial<ToolsData>): Promise<ToolsState> {
   const d = load()
   if (patch.focus) d.focus = { ...d.focus, ...patch.focus }
+  if (patch.timer) d.timer = { ...d.timer, ...patch.timer, durationMin: Math.min(120, Math.max(1, Math.round(patch.timer.durationMin ?? d.timer.durationMin))) }
   if (patch.prayer) d.prayer = { ...d.prayer, ...patch.prayer }
   if (typeof patch.companion === 'boolean') d.companion = patch.companion
   if (patch.tasks) {

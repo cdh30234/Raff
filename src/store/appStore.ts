@@ -101,6 +101,9 @@ interface AppState {
   /** Emoji library view (replaces the clipboard list). */
   emojiOpen: boolean
   setEmojiOpen: (open: boolean) => void
+  /** The Home page (timer, music, apps, date, weather): the shelf's first view, like the emoji picker a separate view. */
+  homeOpen: boolean
+  setHomeOpen: (open: boolean) => void
   /** The tools page (focus, tasks, prayer) replaces the list while open, like the emoji picker. */
   toolsOpen: boolean
   setToolsOpen: (open: boolean) => void
@@ -254,6 +257,23 @@ interface AppState {
   startEdgeTransition: (to: 'left' | 'right' | 'top') => Promise<void>
 }
 
+
+/** The view the shelf opens on (Home, the clipboard list or Tools), remembered per Mac. */
+type ShelfView = 'home' | 'clipboard' | 'tools'
+const VIEW_KEY = 'raff.view'
+function savedView(): ShelfView {
+  try {
+    const v = (globalThis as { localStorage?: Storage }).localStorage?.getItem(VIEW_KEY)
+    if (v === 'clipboard' || v === 'tools') return v
+  } catch { /* storage unavailable */ }
+  return 'home'
+}
+function rememberView(v: ShelfView): void {
+  try {
+    ;(globalThis as { localStorage?: Storage }).localStorage?.setItem(VIEW_KEY, v)
+  } catch { /* storage unavailable */ }
+}
+
 export const useStore = create<AppState>((set, get) => ({
   items: [],
   settings: { ...DEFAULT_SETTINGS },
@@ -262,8 +282,9 @@ export const useStore = create<AppState>((set, get) => ({
   demo: false,
   typeFilter: 'all',
   setTypeFilter: (typeFilter) => {
-    if (get().typeFilter === typeFilter && !get().emojiOpen && !get().toolsOpen) return
-    set({ typeFilter, emojiOpen: false, toolsOpen: false, expandedStackId: null, cardMenu: null, cardMenuRect: null })
+    if (get().typeFilter === typeFilter && !get().emojiOpen && !get().toolsOpen && !get().homeOpen) return
+    rememberView('clipboard')
+    set({ typeFilter, emojiOpen: false, toolsOpen: false, homeOpen: false, expandedStackId: null, cardMenu: null, cardMenuRect: null })
     // The list remounts on filter change; leave the flyout open and it
     // would float over a tab that no longer contains the source card.
     if (get().previewItemId) get().setPreviewItemId(null)
@@ -286,6 +307,7 @@ export const useStore = create<AppState>((set, get) => ({
       set({
         emojiOpen: true,
         toolsOpen: false,
+        homeOpen: false,
         emojiCategory: landing,
         settingsOpen: false,
         previewItemId: null,
@@ -304,13 +326,36 @@ export const useStore = create<AppState>((set, get) => ({
       set({ emojiOpen: false })
     }
   },
+  homeOpen: savedView() === 'home',
+  setHomeOpen: (homeOpen) => {
+    rememberView(homeOpen ? 'home' : 'clipboard')
+    if (homeOpen) {
+      set({
+        homeOpen: true,
+        toolsOpen: false,
+        emojiOpen: false,
+        settingsOpen: false,
+        previewItemId: null,
+        previewItemRect: null,
+        previewFlyoutRect: null,
+        expandedStackId: null,
+        cardMenu: null,
+        cardMenuRect: null
+      })
+      edge.setPreviewMode(false)
+    } else {
+      set({ homeOpen: false })
+    }
+  },
   holdOpenUntil: 0,
   setHoldOpenUntil: (holdOpenUntil) => set({ holdOpenUntil }),
-  toolsOpen: false,
+  toolsOpen: savedView() === 'tools',
   setToolsOpen: (toolsOpen) => {
     if (toolsOpen) {
+      rememberView('tools')
       set({
         toolsOpen: true,
+        homeOpen: false,
         emojiOpen: false,
         settingsOpen: false,
         previewItemId: null,
@@ -326,6 +371,7 @@ export const useStore = create<AppState>((set, get) => ({
       })
       edge.setPreviewMode(false)
     } else {
+      rememberView('clipboard')
       set({ toolsOpen: false })
     }
   },
@@ -607,7 +653,8 @@ export const useStore = create<AppState>((set, get) => ({
       cardMenu: null,
       cardMenuRect: null,
       emojiOpen: settingsOpen ? false : get().emojiOpen,
-      toolsOpen: settingsOpen ? false : get().toolsOpen
+      toolsOpen: settingsOpen ? false : get().toolsOpen,
+      homeOpen: settingsOpen ? false : get().homeOpen
     })
   },
   setDragActive: (dragActive) => set({ dragActive }),
