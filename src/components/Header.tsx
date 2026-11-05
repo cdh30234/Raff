@@ -1,12 +1,9 @@
 import { useStore } from '../store/appStore'
 import { SegmentedControl } from './SegmentedControl'
-import { GearIcon, CloseIcon, InfoIcon, ClockIcon, TypeIcon, LinkIcon, ImageIcon, FilesIcon, PaletteIcon, EmojiSmileIcon } from './icons'
-import { ToolsToggle } from './ToolsToggle'
+import { GearIcon, CloseIcon, InfoIcon, ClockIcon, TypeIcon, LinkIcon, ImageIcon, FilesIcon, PaletteIcon } from './icons'
 import { HomeToggle } from './HomeToggle'
 import { playButtonClickSound } from '../lib/soundEffects'
-import { loadEmojiCatalog } from '../lib/emoji/load'
 import { ShelfSearch } from './ShelfSearch'
-import { EmojiCategoryBar } from './EmojiCategoryBar'
 
 import { useTranslation } from '../i18n'
 import { ClearMenu } from './ClearMenu'
@@ -51,9 +48,6 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
 
   const typeFilter = useStore((s) => s.typeFilter)
   const setTypeFilter = useStore((s) => s.setTypeFilter)
-  const emojiOpen = useStore((s) => s.emojiOpen)
-  const setEmojiOpen = useStore((s) => s.setEmojiOpen)
-  const toolsOpen = useStore((s) => s.toolsOpen)
   const homeOpen = useStore((s) => s.homeOpen)
 
   const FILTERS: {
@@ -116,15 +110,15 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
         >
           {/* Home first (top dock); side docks have it in the footer. */}
           {isHorizontal && <HomeToggle tabIndex={settingsOpen ? -1 : undefined} />}
-          {/* Type filters. With the emoji picker open no filter is shown as
-              selected; picking one closes the picker (setTypeFilter). */}
+          {/* Type filters. With Home open no filter is shown as selected;
+              picking one switches to the clipboard (setTypeFilter). */}
           <SegmentedControl
             items={FILTERS.map((f) => ({
               value: f.id,
               label: f.label,
               icon: <f.Icon width={14} height={14} />
             }))}
-            value={emojiOpen || toolsOpen || homeOpen ? null : typeFilter}
+            value={homeOpen ? null : typeFilter}
             onChange={(val) => {
               playButtonClickSound()
               setTypeFilter(val)
@@ -133,24 +127,6 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
             reduceMotion={reduceMotion}
             tabIndex={settingsOpen ? -1 : undefined}
           />
-          {/* Emoji is a separate view, not a filter, so it gets its own toggle. */}
-          <button
-            type="button"
-            className={`emoji-mode-btn${emojiOpen ? ' active' : ''}`}
-            aria-pressed={emojiOpen}
-            aria-label={t('emoji.open')}
-            title={t('emoji.open')}
-            tabIndex={settingsOpen ? -1 : undefined}
-            onPointerEnter={() => void loadEmojiCatalog()}
-            onClick={() => {
-              playButtonClickSound()
-              setEmojiOpen(!emojiOpen)
-            }}
-          >
-            <EmojiSmileIcon width={14} height={14} />
-          </button>
-          {/* Tools (focus, tasks, prayer): top dock only; side docks have it in the footer. */}
-          {isHorizontal && <ToolsToggle tabIndex={settingsOpen ? -1 : undefined} />}
         </div>
         {isHorizontal ? (
           <div
@@ -225,25 +201,20 @@ export function Header({ isHorizontal = false, itemCount, clearProps }: HeaderPr
         )}
       </div>
 
-      {isHorizontal && !settingsOpen && !emojiOpen && !toolsOpen && !homeOpen && (
+      {isHorizontal && !settingsOpen && !homeOpen && (
         <div className="header-search header-search-center">
           <ShelfSearch />
         </div>
       )}
-      {isHorizontal && !settingsOpen && emojiOpen && (
-        <div className="header-search header-search-center">
-          <EmojiCategoryBar isHorizontal={true} />
-        </div>
-      )}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, paddingRight: 2, position: 'relative', zIndex: 260 }}>
-        {isHorizontal && !settingsOpen && !homeOpen && !toolsOpen && itemCount != null && (
+        {isHorizontal && !settingsOpen && !homeOpen && itemCount != null && (
           <div className="footer-capsule" style={{ marginRight: 2 }}>
             <span className="footer-capsule-count" title={`${itemCount}`}>
               {itemCount}
             </span>
           </div>
         )}
-        {isHorizontal && clearProps && !settingsOpen && !homeOpen && !toolsOpen && (
+        {isHorizontal && clearProps && !settingsOpen && !homeOpen && (
           <ClearMenu {...clearProps} menuDirection="down" />
         )}
         {settingsOpen && (

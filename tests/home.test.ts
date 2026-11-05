@@ -1,33 +1,18 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-vi.mock('electron', () => ({ app: { getVersion: () => '1.2.0', getPath: () => '/tmp' }, net: { request: vi.fn() }, nativeImage: {}, shell: {} }))
-
-import { weatherKind } from '../electron/main/home'
 
 const read = (p: string) => readFileSync(join(__dirname, '..', p), 'utf8')
-
-describe('weather codes (WMO, Open-Meteo)', () => {
-  it('maps every group to a label', () => {
-    expect(weatherKind(0)).toBe('clear')
-    expect(weatherKind(1)).toBe('mostlyClear')
-    expect(weatherKind(2)).toBe('partlyCloudy')
-    expect(weatherKind(3)).toBe('cloudy')
-    expect(weatherKind(45)).toBe('fog')
-    expect(weatherKind(53)).toBe('drizzle')
-    expect(weatherKind(63)).toBe('rain')
-    expect(weatherKind(75)).toBe('snow')
-    expect(weatherKind(81)).toBe('showers')
-    expect(weatherKind(95)).toBe('thunder')
-  })
-})
 
 describe('Home stays light', () => {
   it('the Home page is a lazy chunk, mounted only while shown in an open shelf', () => {
     const panel = read('src/components/Panel.tsx')
     expect(panel).toContain("const HomePanel = lazy(() => import('./home/HomePanel'))")
     expect(panel).toContain('{homeOpen && open ? (')
+    // The emoji picker and the tools page are gone: nothing else lazy in the shelf.
+    expect(panel).not.toContain('EmojiPicker')
+    expect(panel).not.toContain('ToolsPanel')
     for (const f of ['src/components/Panel.tsx', 'src/components/Header.tsx', 'src/components/HomeToggle.tsx', 'src/App.tsx', 'src/main.tsx']) {
       expect(read(f), f).not.toMatch(/^import [^\n]*home\/(HomePanel|MusicCard|TimerCard|InfoCards|RulerPicker)/m)
     }

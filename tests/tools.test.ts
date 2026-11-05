@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { CalculationMethod, Coordinates, PrayerTimes } from 'adhan'
 import { advanceFocus, cityForTimeZone, defaultFocus, PRAYER_CITIES, PRAYER_METHODS } from '../shared/tools'
@@ -43,7 +43,8 @@ describe('prayer times', () => {
     const known = new Set(PRAYER_METHODS.map((m) => m.id))
     for (const c of PRAYER_CITIES) {
       expect(known.has(c.method), c.id).toBe(true)
-      expect(typeof CalculationMethod[c.method], c.id).toBe('function')
+      // Ja'fari has no adhan preset: main builds its parameters (16°, 14°, Maghrib 4°).
+      if (c.method !== 'Jafari') expect(typeof CalculationMethod[c.method as keyof typeof CalculationMethod], c.id).toBe('function')
       expect(Math.abs(c.lat)).toBeLessThanOrEqual(90)
       expect(Math.abs(c.lon)).toBeLessThanOrEqual(180)
     }
@@ -62,15 +63,16 @@ describe('prayer times', () => {
 })
 
 describe('tools stay off the startup and clipboard paths', () => {
-  it('the tools page is a lazy chunk, only imported dynamically', () => {
-    expect(read('src/components/Panel.tsx')).toContain("const ToolsPanel = lazy(() => import('./tools/ToolsPanel'))")
-    for (const file of ['src/components/Panel.tsx', 'src/components/Header.tsx', 'src/components/ToolsToggle.tsx', 'src/App.tsx', 'src/main.tsx']) {
-      expect(read(file), file).not.toMatch(/^import [^\n]*tools\/(ToolsPanel|FocusTool|TasksTool|PrayerTool|Companion)/m)
-    }
+  it('the tools page is gone; its tasks and prayer live on the lazy Home page', () => {
+    expect(existsSync(join(__dirname, '..', 'src/components/tools/ToolsPanel.tsx'))).toBe(false)
+    const home = read('src/components/home/HomePanel.tsx')
+    expect(home).toContain("import { TasksTool } from '../tools/TasksTool'")
+    expect(home).toContain("import { PrayerTool } from '../tools/PrayerTool'")
   })
 
-  it('the page is unmounted whenever the shelf is closed', () => {
-    expect(read('src/components/Panel.tsx')).toContain('{toolsOpen && open ? (')
+  it("Najaf, Karbala and Basra default to the Ja'fari method", () => {
+    for (const id of ['najaf', 'karbala', 'basra']) expect(PRAYER_CITIES.find((c) => c.id === id)?.method, id).toBe('Jafari')
+    expect(read('electron/main/tools.ts')).toContain("new a.CalculationParameters('Other', 16, 14, 0, 4)")
   })
 
   it('main loads the prayer library on demand and keeps one timer, no polling interval', () => {

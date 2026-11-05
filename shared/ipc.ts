@@ -150,8 +150,6 @@ export interface InvokeMap {
   /** Glass themes: the desktop picture and where the shelf window sits on it (macOS). */
   'theme:wallpaper': { args: []; result: import('../electron/main/wallpaper').ShelfWallpaper | null }
 
-  /** Home page: current weather for a prayer city (cached; null when offline). */
-  'home:weather': { args: [cityId?: string]; result: import('../electron/main/home').HomeWeather | null }
   /** Home page: the Dock's apps with icons. */
   'home:apps': { args: []; result: import('../electron/main/home').HomeApp[] }
   /** Home page: open one of the listed apps. */

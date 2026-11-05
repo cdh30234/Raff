@@ -44,8 +44,6 @@ export interface EdgeApi {
   startUpdateDownload: () => Promise<void>
   /** Glass themes: the desktop picture and where the shelf window sits on it (macOS). */
   getWallpaper: () => Promise<import('../electron/main/wallpaper').ShelfWallpaper | null>
-  /** Home page: current weather for a prayer city. */
-  getWeather: (cityId?: string) => Promise<import('../electron/main/home').HomeWeather | null>
   /** Home page: the Dock's apps with icons. */
   getHomeApps: () => Promise<import('../electron/main/home').HomeApp[]>
   /** Home page: open one of the listed apps. */

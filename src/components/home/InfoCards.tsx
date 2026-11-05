@@ -5,8 +5,9 @@
  */
 import { useEffect, useState } from 'react'
 import { edge } from '../../lib/edge'
-import { PRAYER_CITIES } from '../../../shared/tools'
-import type { HomeApp, HomeWeather } from '../../../electron/main/home'
+import { PRAYER_CITIES, type ToolsState } from '../../../shared/tools'
+import { formatClock, formatDuration } from '../tools/useTools'
+import type { HomeApp } from '../../../electron/main/home'
 import { useTicker } from '../tools/useTools'
 
 type T = (key: string, params?: Record<string, string | number>) => string
@@ -22,23 +23,6 @@ function regionalLocale(lang: string): string {
   } catch {
     return lang
   }
-}
-
-/**
- * A translated sentence with the temperature kept left-to-right inside Arabic
- * text ("25°", not "°25"): the sentence is split around the value, which goes
- * in a <bdi dir="ltr">, so every language keeps its own word order.
- */
-const MARK = '\u0000'
-function withTemp(text: string, value: string) {
-  const [before, after] = text.split(MARK)
-  return (
-    <>
-      {before}
-      <bdi dir="ltr">{value}</bdi>
-      {after}
-    </>
-  )
 }
 
 export function DateCard({ lang }: { lang: string }) {
@@ -64,48 +48,6 @@ export function DateCard({ lang }: { lang: string }) {
   )
 }
 
-function WeatherIcon({ kind, day }: { kind: HomeWeather['kind']; day: boolean }) {
-  const p = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
-  const cloud = <path {...p} d="M7.5 18.5h9a3.8 3.8 0 0 0 .5-7.6A5.2 5.2 0 0 0 7 9.6a4.5 4.5 0 0 0 .5 8.9z" />
-  const sun = day
-    ? <g {...p}><circle cx="12" cy="12" r="4" /><path d="M12 3v1.6M12 19.4V21M3 12h1.6M19.4 12H21M5.6 5.6l1.1 1.1M17.3 17.3l1.1 1.1M5.6 18.4l1.1-1.1M17.3 6.7l1.1-1.1" /></g>
-    : <path {...p} d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z" />
-  return (
-    <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
-      {kind === 'clear' || kind === 'mostlyClear' ? sun : cloud}
-      {(kind === 'rain' || kind === 'showers' || kind === 'drizzle') && <path {...p} d="M9 20.5l-.8 1.6M13 20.5l-.8 1.6M17 20.5l-.8 1.6" />}
-      {kind === 'thunder' && <path {...p} d="M12.5 18.5 11 21.5h2.2L12 24" />}
-      {kind === 'snow' && <path {...p} d="M9 21.2h.01M13 21.2h.01M17 21.2h.01" />}
-    </svg>
-  )
-}
-
-export function WeatherCard({ cityId, t, lang }: { cityId: string; t: T; lang: string }) {
-  const [w, setW] = useState<HomeWeather | null | undefined>(undefined)
-  useEffect(() => {
-    let alive = true
-    void edge.getWeather(cityId).then((x) => alive && setW(x))
-    return () => {
-      alive = false
-    }
-  }, [cityId])
-  const city = PRAYER_CITIES.find((c) => c.id === cityId)
-  const cityName = city ? (lang === 'ar' ? city.ar : city.en) : ''
-  const deg = (n: number) => `${new Intl.NumberFormat(lang).format(n)}°`
-  if (w === undefined) return <div className="home-card weather-card is-loading" aria-busy="true" />
-  if (!w) return <div className="home-card weather-card is-empty"><span>{t('tools.weather.unavailable')}</span></div>
-  return (
-    <div className="home-card weather-card">
-      <p className="weather-text">
-        <strong>{withTemp(t('tools.weather.now', { temp: MARK, city: cityName }), deg(w.temp))}</strong>{' '}
-        <span>{withTemp(t('tools.weather.feels', { temp: MARK }), deg(w.feels))}</span>{' '}
-        <strong>{t(`tools.weather.codes.${w.kind}`)}</strong>
-      </p>
-      <span className="weather-icon"><WeatherIcon kind={w.kind} day={w.isDay} /></span>
-    </div>
-  )
-}
-
 export function AppsCard({ columns, rows, t }: { columns: number; rows: number; t: T }) {
   const [apps, setApps] = useState<HomeApp[] | null>(null)
   useEffect(() => {
@@ -124,6 +66,65 @@ export function AppsCard({ columns, rows, t }: { columns: number; rows: number; 
           {a.icon ? <img src={a.icon} alt="" draggable={false} /> : <span className="app-tile-blank">{a.name.slice(0, 1)}</span>}
         </button>
       ))}
+    </div>
+  )
+}
+
+/** "5:09" without AM/PM, for the narrow grid (the next prayer above keeps it). */
+function shortClock(ms: number, lang: string): string {
+  try {
+    return new Intl.DateTimeFormat(lang, { hour: 'numeric', minute: '2-digit' })
+      .formatToParts(ms)
+      .filter((p) => p.type !== 'dayPeriod')
+      .map((p) => p.value)
+      .join('')
+      .trim()
+  } catch {
+    return formatClock(ms, lang)
+  }
+}
+
+/**
+ * Prayer times with the date: weekday and date on top, the next prayer with a
+ * countdown, then today's five prayers. The pin opens the full settings
+ * (city, method, reminders). Times come from main (tools.ts, adhan).
+ */
+export function PrayerCard({ state, onSettings, t, lang }: { state: ToolsState; onSettings: () => void; t: T; lang: string }) {
+  const now = useTicker(true, 30_000)
+  const locale = regionalLocale(lang)
+  const city = PRAYER_CITIES.find((c) => c.id === state.prayer.cityId)
+  const next = state.prayerNext
+  const times = (state.prayerToday?.times ?? []).filter((x) => x.id !== 'sunrise')
+  const current = [...times].reverse().find((x) => x.at <= now)?.id
+  let date = ''
+  try {
+    date = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' }).format(now)
+  } catch { /* keep empty */ }
+  return (
+    <div className="home-card prayer-card">
+      <div className="prayer-card-top">
+        <span className="prayer-card-date">{date}</span>
+        <button type="button" className="prayer-card-place" onClick={onSettings} title={t('tools.prayer.city')}>
+          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z" /><circle cx="12" cy="10" r="2.4" />
+          </svg>
+          {city ? (lang === 'ar' ? city.ar : city.en) : ''}
+        </button>
+      </div>
+      {next && (
+        <div className="prayer-card-next">
+          <strong>{t(`tools.prayer.names.${next.id}`)}</strong>
+          <span>{formatClock(next.at, lang)} · {next.at - now < 60_000 ? t('tools.prayer.now') : t('tools.prayer.inTime', { time: formatDuration(next.at - now, lang) })}</span>
+        </div>
+      )}
+      <ul className="prayer-card-times">
+        {times.map((x) => (
+          <li key={x.id} className={`${x.id === current ? 'is-current' : ''}${x.id === next?.id ? ' is-next' : ''}`}>
+            <span>{t(`tools.prayer.names.${x.id}`)}</span>
+            <b>{shortClock(x.at, lang)}</b>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }

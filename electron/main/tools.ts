@@ -67,6 +67,8 @@ function load(): StoredTools {
         prayer: { ...base.prayer, ...(raw.prayer ?? {}) },
         tasks: Array.isArray(raw.tasks) ? raw.tasks : []
       }
+      // Najaf / Karbala / Basra used to default to MWL; their usual method is Ja'fari.
+      if (['najaf', 'karbala', 'basra'].includes(data.prayer.cityId) && data.prayer.method === 'MuslimWorldLeague') data.prayer.method = 'Jafari'
       return data
     }
   } catch (err) {
@@ -106,12 +108,22 @@ function loadAdhan(): Promise<Adhan | null> {
   return adhanLoading
 }
 
+/**
+ * Calculation parameters. Ja'fari (Shia Ithna Ashari, as used in Najaf and
+ * Qum): Fajr at 16°, Isha at 14°, and Maghrib when the sun is 4° below the
+ * horizon — after the redness in the east has gone, not at sunset.
+ */
+function prayerParams(a: Adhan, method: ToolsData['prayer']['method']) {
+  if (method === 'Jafari') return new a.CalculationParameters('Other', 16, 14, 0, 4)
+  const known = a.CalculationMethod[method as keyof typeof a.CalculationMethod] ?? a.CalculationMethod.MuslimWorldLeague
+  return known()
+}
+
 /** Prayer times for the local day containing `ms`, or null when off / unavailable. */
 function prayerDay(d: StoredTools, ms: number): PrayerDay | null {
   if (!d.prayer.enabled || !adhan) return null
   const city = PRAYER_CITIES.find((c) => c.id === d.prayer.cityId) ?? cityForTimeZone(undefined)
-  const method = adhan.CalculationMethod[d.prayer.method] ?? adhan.CalculationMethod.MuslimWorldLeague
-  const params = method()
+  const params = prayerParams(adhan, d.prayer.method)
   if (d.prayer.hanafiAsr) params.madhab = adhan.Madhab.Hanafi
   const day = new Date(ms)
   const pt = new adhan.PrayerTimes(new adhan.Coordinates(city.lat, city.lon), day, params)

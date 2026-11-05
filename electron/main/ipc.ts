@@ -27,7 +27,7 @@ import * as clipboard from '../clipboard/osClipboard'
 import type { ClipboardItem, DragRequest, ItemData, MergeResult } from '../../shared/types'
 import { getToolsState, updateTools } from './tools'
 import { getShelfWallpaper } from './wallpaper'
-import { getHomeApps, getWeather, openHomeApp } from './home'
+import { getHomeApps, openHomeApp } from './home'
 import { musicCommand, watchMusic } from './music'
 import { quitAndInstallUpdate, checkForUpdatesManual, startUpdateDownload, syncAutoUpdaterState, getCachedUpdateState, triggerBackgroundCheck } from './updater'
 import { createId } from '../store/ids'
@@ -242,7 +242,6 @@ export function registerIpc(): void {
   })
 
   handle('theme:wallpaper', () => getShelfWallpaper(getMainWindow()))
-  handle('home:weather', (cityId) => getWeather(cityId))
   handle('home:apps', () => getHomeApps())
   handle('home:open-app', (path) => openHomeApp(String(path)))
   handle('music:watch', (on) => watchMusic(!!on, (st) => sendToMainWindow('music:state', st)))

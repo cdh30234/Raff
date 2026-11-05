@@ -9,6 +9,14 @@ function read(rel: string): string {
 }
 
 describe('filter bar (SegmentedControl)', () => {
+  it('header: filters show no thumb while Home is shown; no emoji or tools toggles any more', () => {
+    const header = read('src/components/Header.tsx')
+    expect(header).toContain('value={homeOpen ? null : typeFilter}')
+    expect(header).not.toContain('EmojiCategoryBar')
+    expect(header).not.toContain('ToolsToggle')
+    expect(existsSync(join(root, 'src/components/EmojiPicker.tsx'))).toBe(false)
+  })
+
   const tsx = read('src/components/SegmentedControl.tsx')
   const css = read('src/styles/SegmentedControl.css')
 
@@ -16,7 +24,6 @@ describe('filter bar (SegmentedControl)', () => {
     expect(existsSync(join(root, 'src/components/RubberSegment.tsx'))).toBe(false)
     expect(existsSync(join(root, 'src/styles/RubberSegment.css'))).toBe(false)
     expect(read('src/components/Header.tsx')).toContain('<SegmentedControl')
-    expect(read('src/components/EmojiCategoryBar.tsx')).toContain('<SegmentedControl')
   })
 
   it('has no per-frame JS: no framer-motion, no measuring loop', () => {
@@ -55,22 +62,4 @@ describe('filter bar (SegmentedControl)', () => {
     expect(read('src/components/Header.tsx')).toContain('reduceMotion={reduceMotion}')
   })
 
-  it('header: filters exclude emoji, which is its own toggle; no thumb while the picker is open', () => {
-    const header = read('src/components/Header.tsx')
-    expect(header).not.toContain("id: 'emoji'")
-    // The tools page is a separate view too: no filter thumb while it or the emoji picker is open.
-    expect(header).toContain('value={emojiOpen || toolsOpen || homeOpen ? null : typeFilter}')
-    expect(header).toContain('className={`emoji-mode-btn${emojiOpen ? \' active\' : \'\'}`}')
-    expect(header).toContain('setEmojiOpen(!emojiOpen)')
-  })
-
-  it('Header renders EmojiCategoryBar centered in place of search in horizontal dock when emojiOpen', () => {
-    expect(read('src/components/Header.tsx')).toContain('<EmojiCategoryBar isHorizontal={true}')
-  })
-
-  it('EmojiPicker renders EmojiCategoryBar only in vertical dock mode and delegates horizontal to Header', () => {
-    const src = read('src/components/EmojiPicker.tsx')
-    expect(src).toContain('!isHorizontal && <EmojiCategoryBar isHorizontal={false}')
-    expect(src).not.toContain('emoji-cat-btn')
-  })
 })

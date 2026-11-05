@@ -14,12 +14,8 @@ import { PANEL_LEAVE_EVENT, PANEL_ENTER_EVENT } from '../hooks/useEdgeHover'
 import { Header } from './Header'
 import { ShelfSearch } from './ShelfSearch'
 import { ItemList } from './ItemList'
-import { EmojiPicker } from './EmojiPicker'
-import { ToolsToggle } from './ToolsToggle'
 import { HomeToggle } from './HomeToggle'
 import { useGlassTheme } from '../hooks/useGlassTheme'
-// The tools page (focus, tasks, prayer) is its own chunk: nothing of it loads until it is first opened.
-const ToolsPanel = lazy(() => import('./tools/ToolsPanel'))
 // The Home page (timer, music, apps, date, weather): its own chunk too.
 const HomePanel = lazy(() => import('./home/HomePanel'))
 import { Settings } from './Settings'
@@ -78,20 +74,7 @@ export function Panel() {
   const settingsOpen = useStore((s) => s.settingsOpen)
   const setSettingsOpen = useStore((s) => s.setSettingsOpen)
   const setQuery = useStore((s) => s.setQuery)
-  const emojiOpen = useStore((s) => s.emojiOpen)
-  const setEmojiOpen = useStore((s) => s.setEmojiOpen)
-  const toolsOpen = useStore((s) => s.toolsOpen)
   const homeOpen = useStore((s) => s.homeOpen)
-  // Mount the picker on first open and keep it while the shelf stays open.
-  // Tearing it (and ItemList) down on every smile click is what made the
-  // switch hitch. Once the shelf has closed and the picker is no longer shown
-  // it is freed: its grid, images and glyph state would otherwise stay in
-  // memory for the rest of the session. Every open lands on the first page
-  // anyway, so the next mount looks the same.
-  const emojiMountedRef = useRef(false)
-  if (emojiOpen) emojiMountedRef.current = true
-  else if (!open) emojiMountedRef.current = false
-  const emojiMounted = emojiMountedRef.current
   const edgeHintActive = useStore((s) => s.edgeHintActive)
   const edgeTransition = useStore((s) => s.edgeTransition)
   const [startupBeacon, setStartupBeacon] = useState(true)
@@ -158,12 +141,11 @@ export function Panel() {
         if (!useStore.getState().open) {
           setSettingsOpen(false)
           setQuery('')
-          setEmojiOpen(false)
         }
       }, 400)
       return () => window.clearTimeout(timer)
     }
-  }, [open, setSettingsOpen, setQuery, setEmojiOpen])
+  }, [open, setSettingsOpen, setQuery])
 
   const screenH = typeof window !== 'undefined' ? window.innerHeight : 800
   const pFrac = settings.panelHeight || 0.6
@@ -610,9 +592,9 @@ export function Panel() {
           />
 
           <ToastStack />
-          {!isHorizontal && !emojiOpen && !toolsOpen && !homeOpen && !settingsOpen && <ShelfSearch />}
+          {!isHorizontal && !homeOpen && !settingsOpen && <ShelfSearch />}
           <div style={{ flex: 1, display: 'grid', gridTemplate: '1fr / 1fr', overflow: 'hidden', position: 'relative' }}>
-            {/* Main clipboard / emoji view (persistent so ItemList is never torn down and doesn't jump on Y-axis) */}
+            {/* Main clipboard / Home view (persistent so ItemList is never torn down and doesn't jump on Y-axis) */}
             <div
               style={{
                 gridArea: '1 / 1 / 2 / 2',
@@ -631,13 +613,13 @@ export function Panel() {
                 <div
                   style={{
                     gridArea: '1 / 1 / 2 / 2',
-                    display: emojiOpen || toolsOpen || homeOpen ? 'none' : 'flex',
+                    display: homeOpen ? 'none' : 'flex',
                     flexDirection: 'column',
                     minHeight: 0,
                     height: '100%',
                     overflow: 'hidden'
                   }}
-                  aria-hidden={emojiOpen || toolsOpen || homeOpen}
+                  aria-hidden={homeOpen}
                 >
                   <ItemList />
                 </div>
@@ -649,42 +631,20 @@ export function Panel() {
                     </Suspense>
                   </div>
                 ) : null}
-                {/* Tools: mounted only while shown in an open shelf, so a closed shelf holds none of it. */}
-                {toolsOpen && open ? (
-                  <div style={{ gridArea: '1 / 1 / 2 / 2', display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%', overflow: 'hidden' }}>
-                    <Suspense fallback={null}>
-                      <ToolsPanel isHorizontal={isHorizontal} />
-                    </Suspense>
-                  </div>
-                ) : null}
-                <div
-                  style={{
-                    gridArea: '1 / 1 / 2 / 2',
-                    display: emojiOpen ? 'flex' : 'none',
-                    flexDirection: 'column',
-                    minHeight: 0,
-                    height: '100%',
-                    overflow: 'hidden'
-                  }}
-                  aria-hidden={!emojiOpen}
-                >
-                  {emojiMounted ? <EmojiPicker active={emojiOpen} isHorizontal={isHorizontal} /> : null}
-                </div>
               </div>
-              {!isHorizontal && !emojiOpen && (
+              {!isHorizontal && (
                 <div className="footer" style={{ position: 'relative', zIndex: 100 }}>
-                  {!toolsOpen && !homeOpen && (
+                  {!homeOpen && (
                     <div className="footer-capsule">
                       <span className="footer-capsule-count" title={`${filteredCount}`}>
                         {filteredCount}
                       </span>
                     </div>
                   )}
-                  {/* Side docks: the tools toggle lives here (the header is full at 270px). */}
+                  {/* Side docks: the Home toggle lives here (the header is full at 270px). */}
                   <HomeToggle />
-                  <ToolsToggle />
                   <div className="spacer" />
-                  {!toolsOpen && !homeOpen && <ClearMenu
+                  {!homeOpen && <ClearMenu
                     items={filteredItems}
                     disabled={clearable.length === 0}
                     panelOpen={open}

@@ -28,8 +28,8 @@
 .home-slot.is-timer { flex: 0 0 150px; }
 .home-slot.is-music { flex: 2.2 1 0; }
 .home-slot.is-apps { flex: 0 0 104px; }
-.home-slot.is-date { flex: 0 0 130px; }
-.home-slot.is-weather { flex: 1.6 1 0; }
+.home-slot.is-prayer { flex: 1.25 1 0; }
+.home-slot.is-tasks { flex: 1.35 1 0; }
 .home-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
 .home-card {
@@ -230,3 +230,37 @@
 .home:not(.is-horizontal) > * { flex-shrink: 0; }
 .home:not(.is-horizontal) .music-title { margin-top: 6px; }
 .home:not(.is-horizontal) .music-card { min-height: 150px; }
+
+/* ── prayer (with the date) ──────────────────────────────── */
+.prayer-card { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; min-height: 120px; }
+.prayer-card-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.prayer-card-date { font-size: calc(11.5px * var(--font-scale, 1)); font-weight: 700; color: #ff453a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prayer-card-place {
+  display: inline-flex; align-items: center; gap: 3px; flex-shrink: 0;
+  height: 20px; padding: 0 7px; border: 0; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);
+  font: inherit; font-size: calc(10.5px * var(--font-scale, 1)); cursor: pointer;
+}
+.prayer-card-place:hover { color: #fff; background: rgba(255, 255, 255, 0.16); }
+.prayer-card-next { display: grid; line-height: 1.2; }
+.prayer-card-next strong { font-size: calc(19px * var(--font-scale, 1)); }
+.prayer-card-next span { font-size: calc(11px * var(--font-scale, 1)); color: var(--text-secondary); }
+.prayer-card-times { list-style: none; margin: auto 0 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.prayer-card-times li { display: grid; justify-items: center; gap: 1px; padding: 4px 0; border-radius: 8px; font-size: calc(10px * var(--font-scale, 1)); color: var(--text-tertiary); }
+.prayer-card-times b { font-size: calc(11px * var(--font-scale, 1)); font-weight: 600; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.prayer-card-times li.is-current { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.prayer-card-times li.is-next b { color: #fff; font-weight: 800; }
+
+/* ── tasks card ──────────────────────────────────────────── */
+.tasks-card { padding: 10px; min-height: 120px; overflow-y: auto; scrollbar-width: none; }
+.tasks-card::-webkit-scrollbar { display: none; }
+.home.is-horizontal .tasks-card .tasks-add .tools-btn { display: none; }
+
+/* ── a sheet in place of the cards (prayer settings) ─────── */
+.home.is-sheet { display: block; }
+.home-sheet { position: relative; max-width: 560px; margin: 0 auto; height: auto; padding: 4px 4px 8px; }
+.home.is-horizontal .home-sheet .prayer-tool { flex-direction: row; flex-wrap: wrap; gap: 8px 16px; }
+.home-sheet-done { margin-top: 8px; }
+
+/* Side docks show the date in its own card. */
+.home:not(.is-horizontal) .prayer-card-date { visibility: hidden; }

@@ -111,30 +111,3 @@ describe('glyph cache (renderer)', () => {
   })
 })
 
-describe('emoji picker wiring', () => {
-  it('exposes emoji:glyphs through the shared contract, preload and main', () => {
-    expect(read('shared/ipc.ts')).toContain("'emoji:glyphs': { args: [files: string[]]; result: Record<string, string> }")
-    expect(read('shared/bridge.ts')).toContain('emojiGlyphs: (files: string[]) => Promise<Record<string, string>>')
-    expect(read('electron/preload/index.ts')).toContain("emojiGlyphs: (files: string[]) => invoke('emoji:glyphs', files)")
-    expect(read('electron/main/ipc.ts')).toMatch(/handle\('emoji:glyphs'[\s\S]*?readEmojiBatch\(/)
-  })
-
-  it('grid glyphs come from the cache and keep their image once shown', () => {
-    const src = read('src/components/EmojiPicker.tsx')
-    expect(src).toContain('src={src}')
-    expect(src).toContain('const src = glyphSrc(file) ?? shown.current.src')
-    expect(src).toContain('loadGlyphs(items.slice(startRow * cols, endRow * cols)')
-    expect(src).not.toContain('emojiGlyphUrl(')
-  })
-
-  it('category bar is memoised and warms on a hover rest', () => {
-    const src = read('src/components/EmojiCategoryBar.tsx')
-    expect(src).toContain('export const EmojiCategoryBar = memo(CategoryBar)')
-    expect(src).toContain('onHoverItem={warmOnRest}')
-    expect(src).toContain('onPointerLeave={cancelWarm}')
-  })
-
-  it('emoji cells do not force a compositor layer each', () => {
-    expect(read('src/styles/emoji.css')).not.toMatch(/\.emoji-cell \{[^}]*transform:\s*translateZ/)
-  })
-})

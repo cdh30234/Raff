@@ -247,7 +247,8 @@ export default function App() {
       // The pointer is probably elsewhere (at the notification): hold the shelf open a moment.
       useStore.getState().setHoldOpenUntil(Date.now() + 8000)
       useStore.getState().setOpen(true)
-      useStore.getState().setToolsOpen(true)
+      // Tasks, timer and prayer reminders all live on Home now.
+      useStore.getState().setHomeOpen(true)
       edge.setInteractive(true)
     })
     const offOpenSettings = edge.onOpenSettings(() => {

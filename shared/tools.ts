@@ -48,6 +48,7 @@ export interface FocusState {
 }
 
 export type PrayerMethodId =
+  | 'Jafari'
   | 'UmmAlQura'
   | 'MuslimWorldLeague'
   | 'Egyptian'
@@ -62,6 +63,7 @@ export type PrayerMethodId =
   | 'MoonsightingCommittee'
 
 export const PRAYER_METHODS: { id: PrayerMethodId; en: string; ar: string }[] = [
+  { id: 'Jafari', en: "Ja'fari (Shia, Najaf)", ar: 'الجعفري (الشيعة، النجف)' },
   { id: 'UmmAlQura', en: 'Umm al-Qura (Makkah)', ar: 'أم القرى (مكة)' },
   { id: 'MuslimWorldLeague', en: 'Muslim World League', ar: 'رابطة العالم الإسلامي' },
   { id: 'Egyptian', en: 'Egyptian General Authority', ar: 'الهيئة المصرية العامة للمساحة' },
@@ -90,9 +92,10 @@ export interface PrayerCity {
 /** Cities to pick from; the default is guessed from the system time zone. */
 export const PRAYER_CITIES: PrayerCity[] = [
   { id: 'baghdad', en: 'Baghdad', ar: 'بغداد', lat: 33.3152, lon: 44.3661, tz: 'Asia/Baghdad', method: 'MuslimWorldLeague' },
-  { id: 'basra', en: 'Basra', ar: 'البصرة', lat: 30.5085, lon: 47.7804, tz: 'Asia/Baghdad', method: 'MuslimWorldLeague' },
+  { id: 'basra', en: 'Basra', ar: 'البصرة', lat: 30.5085, lon: 47.7804, tz: 'Asia/Baghdad', method: 'Jafari' },
   { id: 'erbil', en: 'Erbil', ar: 'أربيل', lat: 36.1911, lon: 44.0092, tz: 'Asia/Baghdad', method: 'MuslimWorldLeague' },
-  { id: 'najaf', en: 'Najaf', ar: 'النجف', lat: 32.0259, lon: 44.3462, tz: 'Asia/Baghdad', method: 'MuslimWorldLeague' },
+  { id: 'najaf', en: 'Najaf', ar: 'النجف', lat: 32.0259, lon: 44.3462, tz: 'Asia/Baghdad', method: 'Jafari' },
+  { id: 'karbala', en: 'Karbala', ar: 'كربلاء', lat: 32.6160, lon: 44.0249, tz: 'Asia/Baghdad', method: 'Jafari' },
   { id: 'makkah', en: 'Makkah', ar: 'مكة المكرمة', lat: 21.4225, lon: 39.8262, tz: 'Asia/Riyadh', method: 'UmmAlQura' },
   { id: 'madinah', en: 'Madinah', ar: 'المدينة المنورة', lat: 24.4686, lon: 39.6142, tz: 'Asia/Riyadh', method: 'UmmAlQura' },
   { id: 'riyadh', en: 'Riyadh', ar: 'الرياض', lat: 24.7136, lon: 46.6753, tz: 'Asia/Riyadh', method: 'UmmAlQura' },

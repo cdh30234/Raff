@@ -199,7 +199,6 @@ const api = {
   startUpdateDownload: () => invoke('updater:start-download'),
   getUpdateState: () => invoke('updater:get-state'),
   getWallpaper: () => invoke('theme:wallpaper'),
-  getWeather: (cityId?: string) => invoke('home:weather', cityId),
   getHomeApps: () => invoke('home:apps'),
   openHomeApp: (path: string) => invoke('home:open-app', path),
   watchMusic: (on: boolean) => invoke('music:watch', on),

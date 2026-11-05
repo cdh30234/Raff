@@ -264,8 +264,9 @@ const VIEW_KEY = 'raff.view'
 function savedView(): ShelfView {
   try {
     const v = (globalThis as { localStorage?: Storage }).localStorage?.getItem(VIEW_KEY)
-    if (v === 'clipboard' || v === 'tools') return v
+    if (v === 'clipboard') return v
   } catch { /* storage unavailable */ }
+  // 'home', nothing saved yet, or the former 'tools' page (merged into Home).
   return 'home'
 }
 function rememberView(v: ShelfView): void {
@@ -349,7 +350,7 @@ export const useStore = create<AppState>((set, get) => ({
   },
   holdOpenUntil: 0,
   setHoldOpenUntil: (holdOpenUntil) => set({ holdOpenUntil }),
-  toolsOpen: savedView() === 'tools',
+  toolsOpen: false,
   setToolsOpen: (toolsOpen) => {
     if (toolsOpen) {
       rememberView('tools')

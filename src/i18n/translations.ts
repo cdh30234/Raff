@@ -15,6 +15,7 @@ export interface TranslationKeys {
   /** Raff's tools page (focus, tasks, prayer, companion). Optional: other languages fall back to English. */
   tools?: {
     open: string
+    done: string
     theme: { title: string; desc: string; black: string; glassDark: string; glass: string }
     nav: { home: string; clipboard: string; tools: string }
     weather: {
@@ -843,6 +844,7 @@ export const LANGUAGES: LanguageMeta[] = [
 export const en: TranslationKeys = {
   tools: {
     "open": "Tools",
+    "done": "Done",
     "theme": {
       "title": "Theme",
       "desc": "The shelf's surface: solid black, or frosted glass over your wallpaper.",
@@ -8424,6 +8426,7 @@ export const hi: TranslationKeys = {
 export const ar: TranslationKeys = {
   tools: {
     "open": "الأدوات",
+    "done": "تم",
     "theme": {
       "title": "المظهر",
       "desc": "سطح الرف: أسود كامل، أو زجاج شفاف فوق خلفية سطح مكتبك.",
