@@ -1,6 +1,6 @@
 {
   "name": "raff",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Raff — a clipboard shelf on the edge of your Mac screen. Based on Edge-Drop by Deepender25.",
   "author": {
     "name": "Mohamed Hassan",
@@ -175,6 +175,7 @@
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
+    "adhan": "^4.4.6",
     "electron-updater": "^6.8.9",
     "koffi": "^3.1.2",
     "react": "^18.2.0",
